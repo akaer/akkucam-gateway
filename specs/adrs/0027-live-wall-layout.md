@@ -1,190 +1,184 @@
-# ADR-0027: Live-Wand mit Ansichten, Details-Drawer und mobiler Steuerleiste
+# ADR-0027: Live wall with views, details drawer and mobile control bar
 
 - Status: Accepted
-- Datum: 2026-11-23
+- Date: 2026-11-23
 
-## Kontext
+## Context
 
-Die bisherige Oberfläche zeigte pro geladener Basisstation einen eigenen Workspace
-untereinander. Die Kamerakarten hatten je nach Anzahl unterschiedliche Größen, die
-Setup-Seite blieb über den Streams sichtbar, und auf großen Displays blieb viel
-Fläche ungenutzt. Für mehrere Hubs und für iPhone/iPad fehlte eine gemeinsame,
-vorhersehbare Anordnung. Drei klickbare Prototypen haben die Varianten
-geprüft; die Umsetzung folgt der gemeinsamen Live-Wand.
+The previous interface showed one workspace per loaded base station, stacked
+below each other. Camera tiles had different sizes depending on the count, the
+setup page stayed visible above the streams, and large displays left much space
+unused. Several hubs and iPhone/iPad needed one shared, predictable layout. Three
+clickable prototypes tested the variants; the implementation follows the shared
+live wall.
 
-## Entscheidung
+## Decision
 
 ### Flow
 
-- Solange keine Basisstation geladen ist, bleibt die Setup-Seite sichtbar
-  (Discovery, Hub-Auswahl, Diagnose).
-- Setup und Wand nutzen dieselbe Vollbreiten-Hülle: kompakter Hinweisbalken,
-  Werkzeugleisten-Stil, 16-px-Ränder und kein zentrierter 1560-px-Container.
-  Die Setup-Seite zeigt eine Setup-Leiste mit Discover/„Zurück zur Wand“, einen
-  vollbreiten Empty State und darunter das Hub-Raster bzw. die Diagnose.
-- Nach dem Laden der ersten Kanalliste ersetzt die Live-Wand die Setup-Seite.
-- „Basisstation hinzufügen“ öffnet die Setup-Seite gezielt wieder. Der Flow ist
-  gesperrt, solange Streams laufen; nach erfolgreichem Laden kehrt die Wand zurück.
-- Diagnose und manueller Kanal-Fallback bleiben Teil der Setup-Seite.
+- While no base station is loaded, the setup page stays visible (discovery, hub
+  selection, diagnostics).
+- Setup and wall share the same full-width shell: compact notice bar, toolbar
+  style, 16 px gutters and no centered 1560 px container. The setup page shows a
+  setup bar with discover and "Back to the wall", a full-width empty state and the
+  hub grid or diagnostics below.
+- After the first channel list loads, the live wall replaces the setup page.
+- "Add base station" opens the setup page on purpose. The flow is locked while
+  streams run; after a successful load the wall returns.
+- Diagnostics and the manual channel fallback stay part of the setup page.
 
-### Gemeinsame Wand
+### Shared wall
 
-- Alle geladenen Hubs erscheinen in **einer** Wand. Hub-Filterchips blenden Hubs
-  aus, ohne Streams zu beenden.
-- Ein Hub-Manager-Dialog zeigt alle geladenen Hubs mit vollem Modell/DID, Code-
-  Status, Kamerazahl, Live-Zahl sowie Start/Stop, „Code entfernen“ je Hub und
-  einem globalen „Alle Sicherheitscodes entfernen“.
-- Globale Aktionen starten und beenden weiterhin alle Hubs gemeinsam (ADR-0026).
+- All loaded hubs appear in **one** wall. Hub filter chips hide hubs without
+  stopping streams.
+- A hub manager dialog shows all loaded hubs with the full model and DID, code
+  status, camera count, live count, start and stop, "Remove code" per hub and a
+  global "Remove all security codes".
+- Global actions still start and stop all hubs together (ADR-0026).
 
-### Ansichten
+### Views
 
-- **Auto-Matrix:** Spalten und Zeilen werden aus Kameraanzahl und verfügbarer
-  Fläche berechnet. Alle Kacheln sind gleich groß; ungerade Anzahlen ergeben
-  sichtbare leere Rasterzellen. Reicht die Fläche nicht für lesbare Kacheln,
-  scrollt die Wand.
-- **Fokus:** eine große aktive Kachel und ein Streifen mit allen anderen Kameras
-  (Desktop rechts, Mobile unten). Der Streifen wählt die aktive Kamera und zeigt
-  für laufende Streams Miniatur-Livebilder, die aus den vorhandenen Videoelementen
-  auf Canvas gezeichnet werden. Es wird keine zusätzliche HLS-Instanz gestartet.
-- **Komfort:** gleiche Matrix wie Auto, aber mit fester Kopf- und Steuerzeile
-  pro Kachel (Qualität, Bewegung, Start/Stop).
-- Alle Ansichten beginnen oben unter der Wand-Leiste; horizontal bleibt das
-  Raster zentriert.
-- Die Auswahl wird als `localStorage['akkucam-wall-view']` gespeichert. Der
-  Einstellungsdialog bietet „Auf Standard zurücksetzen“ (Auto) und entfernt den
-  Eintrag wieder. Es werden keine Zugangsdaten gespeichert.
+- **Auto matrix:** columns and rows come from the camera count and the available
+  area. All tiles are the same size; odd counts produce visible empty grid cells.
+  When the area cannot hold readable tiles, the wall scrolls.
+- **Focus:** one large active tile and a strip with all other cameras (desktop
+  right, mobile bottom). The strip selects the active camera and shows miniature
+  live frames for running streams, drawn from the existing video elements onto
+  canvas. No extra HLS instance starts.
+- **Comfort:** the same matrix as auto, with a fixed header and control row per
+  tile (quality, motion, start and stop).
+- All views start at the top below the wall bar; the grid stays centered
+  horizontally.
+- The choice is stored as `localStorage['akkucam-wall-view']`. The settings dialog
+  offers "Reset to default" (auto) and removes the entry again. No credentials are
+  stored.
 
-### Kachel und Video
+### Tile and video
 
-- Eine Kachel zeigt Video oder Platzhalter, Kanalnummer, Namen, kurzes Hub-
-  Kürzel und Status. Auto/Fokus nutzen ein Overlay; Komfort nutzt Kopf- und
-  Fußzeile.
-- Klick auf Video/Kachel öffnet den Details-Drawer (Desktop rechts, Mobile als
-  Bottom-Sheet): Qualität, Bewegungserkennung, Start/Stop, Vollbild, vorhandene
-  Gerätedaten und Live-Metriken.
-- Der Vollbild-Button sitzt in der Kachel; native Videosteuerung erscheint im
-  Vollbild, nicht in der kleinen Kachel.
-- Beim Wechsel von Ansicht, Filter oder Sprache werden **keine Videoelemente
-  neu erzeugt**. Jeder Stream hält sein `<video>`-Element und seine HLS-Instanz;
-  nicht sichtbare Videos liegen im offscreen `#stream-holder`, sichtbare werden
-  an die neue Kachel gehängt. Streams laufen weiter.
-- Kachelrahmen und Schatten sind themeabhängig: im Light Theme hell und weich,
-  im Dark Theme dezent. Schwarz bleibt dem Videobereich vorbehalten.
+- A tile shows video or a placeholder, channel number, name, short hub label and
+  status. Auto and focus use an overlay; comfort uses a header and footer.
+- A click on the video or tile opens the details drawer (desktop right, mobile as
+  a bottom sheet): quality, motion detection, start and stop, fullscreen, available
+  device data and live metrics.
+- The fullscreen button sits in the tile; native video controls appear in
+  fullscreen, not in the small tile.
+- Changing the view, filter or language **does not recreate video elements**.
+  Each stream keeps its `<video>` element and HLS instance; invisible videos sit
+  in the offscreen `#stream-holder`, visible ones attach to the new tile. Streams
+  keep running.
+- Tile frames and shadows follow the theme: light and soft in the light theme,
+  subtle in the dark theme. Black stays reserved for the video area.
 
-### Live-Daten-Popover
+### Live data popover
 
-- Nur laufende Streams zeigen den Trigger „Live-Daten“.
-- Das Popover ist standardmäßig geschlossen und zeigt ausschließlich vorhandene
-  Werte (Bitrate, FPS, Akku, Uptime; ADR-0014). Kanal- und Hub-Name entfallen,
-  weil sie bereits auf der Kachel stehen.
-- Erneuter Trigger-Klick, × oder Klick außerhalb schließt es. Ein Klick außerhalb
-  auf eine Kachel schließt nur das Popover und öffnet keine Seitenleiste;
-  Topbar-/Toolbar-Aktionen bleiben bedienbar. Escape bleibt Tastatur-Fallback.
-- Der Fokus geht beim Schließen per ×/Escape zurück auf den Trigger.
-- Die Kachelhöhe bleibt unverändert. Live-Metriken bleiben auch im Drawer
-  verfügbar (ADR-0015).
+- Only running streams show the "Live data" trigger.
+- The popover is closed by default and shows only available values (bitrate, FPS,
+  battery, uptime; ADR-0014). Channel and hub name are omitted because they already
+  sit on the tile.
+- A second click on the trigger, × or a click outside closes it. A click outside on
+  a tile closes only the popover and opens no side panel; top bar and toolbar
+  actions stay usable. Escape remains the keyboard fallback.
+- Focus returns to the trigger when the popover closes through × or Escape.
+- The tile height stays unchanged. Live metrics remain available in the drawer
+  (ADR-0015).
 
-### Mobile Steuerleiste
+### Mobile control bar
 
-- Nur für iPhone-Größen: Hochformat `≤ 640 px`, Querformat `≤ 1000 × 560 px`.
-  iPad und Desktop behalten die volle Wand-Leiste.
-- Kompakte Leiste: Filter-Pill, globaler Start/Stop-Toggle und „⋯“.
-- Das Bottom-Sheet enthält Darstellung, Hub-Filter, globale Aktionen,
-  Hub-Verwaltung und Einstellungen.
-- Hochformat nutzt eine Spalte und scrollt; Querformat nutzt die beste Matrix.
+- Only for iPhone sizes: portrait `≤ 640 px`, landscape `≤ 1000 × 560 px`. iPad and
+  desktop keep the full wall bar.
+- Compact bar: filter pill, global start/stop toggle and "⋯".
+- The bottom sheet holds appearance, hub filter, global actions, hub management
+  and settings.
+- Portrait uses one column and scrolls; landscape uses the best matrix.
 
-### Weitere Entscheidungen
+### Further decisions
 
-- Die Topbar behält Sprache, Theme und Hilfe (Hilfe ganz rechts, ADR-0024).
-  Die Wand-Einstellungen liegen in einem Zahnrad der Wand-Leiste bzw. im
-  mobilen Sheet.
-- Im Wandmodus und auf der Setup-Seite gibt es **keinen Seiten-Footer**.
-  Lizenz- und API-Informationen öffnen sich über das Info-/Hilfe-Icon als
-  scrollbarer Lizenzdialog. Die separate `licenses.html` und die Lizenzlinks im
-  Einstellungsdialog entfallen; Copyright und MIT-Footerlink werden nicht mehr
-  angezeigt. Der Dialog listet die MIT-Projektlizenz und alle Drittanbieter.
-- Sicherheitscodes bleiben ausschließlich im Browser-RAM (ADR-0012/ADR-0025).
-- Keine API-, OpenAPI- oder SBOM-Änderung. Die vorhandenen Live-Endpunkte
-  liefern weiterhin pro DID und Kanal.
+- The top bar keeps language, theme and help (help at the far right, ADR-0024).
+  Wall settings sit in a gear in the wall bar or in the mobile sheet.
+- In wall mode and on the setup page there is **no page footer**. License and API
+  information opens through the info/help icon as a scrollable license dialog. The
+  separate `licenses.html` and the license links in the settings dialog are gone;
+  copyright and the MIT footer link are no longer shown. The dialog lists the MIT
+  project license and all third-party components.
+- Security codes stay exclusively in browser RAM (ADR-0012/ADR-0025).
+- No API, OpenAPI or SBOM change. The existing live endpoints still deliver per DID
+  and channel.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Bestehende Workspace-Karten nur responsiver machen:** löst weder ungleiche
-  Kachelgrößen noch den Platzverbrauch und lässt die Setup-Seite über den
-  Streams stehen.
-- **Tabs pro Hub:** würde wieder exklusiv umschalten; ADR-0026 verlangt parallele
-  Sichtbarkeit. Filterchips und eine gemeinsame Wand erfüllen das ohne Verlust
-  der Hub-Zuordnung.
-- **Dauerhaft sichtbare Live-Metriken in jeder Kachel:** widerspricht ADR-0015
-  und kostet Videofläche. Das Popover ist der explizite Einstieg.
-- **Native Popover-API:** Light-Dismiss ließ den Folgeklick auf die Kachel die
-  Seitenleiste öffnen. Ein eigenes Overlay mit kontrolliertem Klick-Handling ist
-  auf Desktop und iPhone vorhersehbar.
-- **Feste zwei Spalten im iPhone-Querformat:** zeigt bei fünf Kameras nur eine
-  Reihe. Die Auto-Matrix nutzt die Höhe besser.
+- **Make the existing workspace cards only more responsive:** solves neither
+  unequal tile sizes nor the space use and leaves the setup page above the streams.
+- **Tabs per hub:** would switch exclusively again; ADR-0026 requires parallel
+  visibility. Filter chips and one shared wall meet that without losing the hub
+  mapping.
+- **Permanently visible live metrics in every tile:** contradicts ADR-0015 and
+  costs video area. The popover is the explicit entry point.
+- **Native popover API:** light dismiss let the following click on the tile open
+  the side panel. A custom overlay with controlled click handling is predictable on
+  desktop and iPhone.
+- **Fixed two columns in iPhone landscape:** shows only one row with five cameras.
+  The auto matrix uses the height better.
 
-## Konsequenzen
+## Consequences
 
-- `web/index.html`: Setup- und Wandbereich, Wand-Leiste, mobile Leiste,
-  Details-Drawer, Einstellungen, Hub-Manager, Metrik-Popover, Lizenzdialog.
-- `web/app.js`: Wand-Rendering, Matrixberechnung, Video-/HLS-Erhalt,
-  Offscreen-Videohalter, Fokus-Miniaturen, Filter, Ansichten, Drawer, Popover,
-  mobile Leiste, Hub-Manager.
-- `web/style.css`: Wand-, Kachel-, Drawer-, Popover-, Lizenz- und Mobile-Stile
-  inklusive themeabhängiger Kachelrahmen.
-- `web/locales/{en,de}.json`: neue Schlüssel für Wand, Setup, Ansichten,
-  Einstellungen, Hub-Manager, Live-Daten, Lizenzen und mobile Leiste.
-- `web/e2e/wall.spec.ts`: neue deterministische Suite; bestehende Suiten an die
-  Wand angepasst. Die frühere `licenses.html` und der Seiten-Footer entfallen.
-- ADR-0013, ADR-0015, ADR-0022 und ADR-0026 werden durch diesen Beschluss ergänzt.
+- `web/index.html`: setup and wall area, wall bar, mobile bar, details drawer,
+  settings, hub manager, metric popover, license dialog.
+- `web/app.js`: wall rendering, matrix calculation, video and HLS retention,
+  offscreen video holder, focus miniatures, filters, views, drawer, popover, mobile
+  bar, hub manager.
+- `web/style.css`: wall, tile, drawer, popover, license and mobile styles,
+  including theme-aware tile frames.
+- `web/locales/{en,de}.json`: new keys for wall, setup, views, settings, hub
+  manager, live data, licenses and mobile bar.
+- `web/e2e/wall.spec.ts`: new deterministic suite; existing suites adjusted to the
+  wall. The former `licenses.html` and the page footer are gone.
+- ADR-0013, ADR-0015, ADR-0022 and ADR-0026 are amended by this decision.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Das Kachel-Overlay hat in `web/style.css` `z-index: 1`. Das `<video>` wird nach
-dem Overlay in `.tile-media` eingehängt; ohne eigene Stapelebene legt Chromium
-es beim Hit-Testing über die Overlay-Buttons, sodass „Live-Daten“ und Vollbild
-nicht klickbar waren. Der Playwright-Test „closes live data on trigger and
-outside without opening details“ deckt das ab.
+The tile overlay has `z-index: 1` in `web/style.css`. The `<video>` is attached
+after the overlay in `.tile-media`; without its own stacking context, Chromium
+places it above the overlay buttons during hit testing, so "Live data" and
+fullscreen were not clickable. The Playwright test "closes live data on trigger and
+outside without opening details" covers this.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-- Die Hülle nutzt `--gutter` (16 px). Der Wand-Canvas setzt `--canvas-gap`
-  (12 px, mobil 8 px) ein, damit Kacheln und Ränder nicht doppelt zählen. Die
-  frühere Formulierung „16-px-Ränder“ meinte die Hülle, nicht jede Innenkante.
-- Der Layout-Status in der Wand-Leiste („3 × 2 · 4 Kameras (scrollt)“) ist
-  Teil der Leiste: Er beschreibt Raster und Scrollbedarf, ist unter 980 px
-  ausgeblendet und zählt nicht als Gerätemetadatum.
-- Die Live-Daten zeigen die Laufzeit als formatierten Wert
-  (`uptimeSeconds`), nicht als Serverzeichenkette (ADR-0021).
+- The shell uses `--gutter` (16 px). The wall canvas uses `--canvas-gap` (12 px,
+  8 px on mobile) so tiles and gutters do not count twice. The earlier wording
+  "16 px gutters" meant the shell, not every inner edge.
+- The layout status in the wall bar ("3 × 2 · 4 cameras (scrolls)") is part of the
+  bar: it describes the grid and scroll need, hides below 980 px and does not count
+  as device metadata.
+- Live data shows uptime as a formatted value (`uptimeSeconds`), not as a server
+  string (ADR-0021).
 
-## Nachtrag 2026-11-24 (Live-Overlay)
+## Addendum 2026-11-24 (live overlay)
 
-- Das Hub-Kürzel entfällt im Video der Ansichten Auto und Fokus sowie im
-  Fokus-Streifen. Komfort behält es unter dem Kameranamen.
-- Den Live-Daten-Popover gibt es nicht mehr. Laufende Streams zeigen
-  `412 kbit/s · 25 fps · 87 %` unten links als dezentes Overlay; die
-  Laufzeit bleibt im Drawer (ADR-0031).
-- Die Bitrate wird in `kbit/s` angezeigt, nicht in `Mbit/s`.
-- Die Sichtbarkeit ist in den Wand-Einstellungen schaltbar
-  (`akkucam-wall-metrics`, Standard an).
+- The hub label is gone from the video in auto and focus views and from the focus
+  strip. Comfort keeps it below the camera name.
+- The live data popover is gone. Running streams show `412 kbit/s · 25 fps · 87 %`
+  in the bottom left as a subtle overlay; uptime stays in the drawer (ADR-0031).
+- Bitrate appears in `kbit/s`, not `Mbit/s`.
+- Visibility is switchable in the wall settings (`akkucam-wall-metrics`, default
+  on).
 
-## Nachtrag 2026-11-24 (Leiste und Setup)
+## Addendum 2026-11-24 (bar and setup)
 
-- Der Layout-Status („3 × 2 · 4 Kameras (scrollt)“) entfällt aus der
-  Wand-Leiste. Raster und Scrollbedarf bleiben intern, sind aber kein
-  Nutzertext mehr.
-- Der Hub-Manager nennt zusätzlich zur IP die MAC-Adresse, sofern sie aus der
-  Kanalliste oder der ARP-Tabelle bekannt ist.
-- Die Setup-Karte zeigt die Hub-Metadaten offen statt hinter einem
-  Aufklapper (ADR-0015).
+- The layout status ("3 × 2 · 4 cameras (scrolls)") is gone from the wall bar. Grid
+  and scroll need stay internal but are no longer user text.
+- The hub manager also names the MAC address when it is known from the channel list
+  or the ARP table.
+- The setup card shows hub metadata openly instead of behind a disclosure
+  (ADR-0015).
 
-## Verweise
+## References
 
-- ADR-0011: Stream pro DID und Kanal
-- ADR-0012/ADR-0025: Code nur im Browser-RAM
-- ADR-0013: Responsive Dashboard und Theme
-- ADR-0014: Nur vorhandene Metadaten
-- ADR-0015: Progressive Disclosure
-- ADR-0021: Zweisprachige UI
-- ADR-0026: Mehrere Basisstationen
+- ADR-0011: Stream per DID and channel
+- ADR-0012/ADR-0025: Code in browser RAM only
+- ADR-0013: Responsive dashboard and theme
+- ADR-0014: Only available metadata
+- ADR-0015: Progressive disclosure
+- ADR-0021: Bilingual UI
+- ADR-0026: Several base stations
 - `specs/product.md`, `specs/architecture.md`, `specs/testing.md`

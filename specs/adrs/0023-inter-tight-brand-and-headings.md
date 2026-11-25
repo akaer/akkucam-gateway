@@ -1,64 +1,92 @@
-# ADR-0023: Inter Tight für Markenname und Schritt-Headings
+# ADR-0023: Inter Tight for the brand name and step headings
 
 - Status: Accepted
-- Datum: 2026-11-22
+- Date: 2026-11-22
 
-## Kontext
+## Context
 
-Die Oberfläche nutzte bisher dieselbe Systemschrift für alle Texte. Der Markenname „AkkuCam“ im Topbar und die großen Schritt-Headings („Basisstation auswählen“ und „X Kameras“) sollen sich typografisch stärker abheben. Gleichzeitig war der Hero-Textblock („Your cameras. At a glance.“ plus Erklärtext) zu prominent und wurde entfernt.
+The interface used the same system font for all text. The brand name "AkkuCam" in
+the top bar and the large step headings ("Select a base station" and "X cameras")
+should stand out more typographically. At the same time, the hero text block
+("Your cameras. At a glance." plus explanatory text) was too prominent and was
+removed.
 
-Die Randbedingungen bleiben: keine Cloud, kein CDN. Die Schrift muss lokal ausgeliefert werden, und ihre Lizenz muss sichtbar dokumentiert sein.
+The constraints stay: no cloud, no CDN. The font must ship locally and its
+license must be documented visibly.
 
-## Entscheidung
+## Decision
 
-- Inter Tight wird als lokal gebündelte Web-Schrift unter `web/fonts/` ausgeliefert:
-  - `web/fonts/inter-tight-latin.woff2` (Regular 400)
-  - `web/fonts/inter-tight-bold-latin.woff2` (Bold 700)
-- `web/style.css` bindet beide Schnitte per `@font-face` ein. `font-display: swap` sorgt für lesbaren Text während des Ladens. Es gibt keinen Google-Fonts- oder sonstigen CDN-Aufruf.
-- Der Markenname im Topbar (`.brand`) nutzt Inter Tight. Der Name „AkkuCam“ wird durch das vorhandene `<strong>` fett (700) dargestellt; die Tagline bleibt in der normalen Schriftstärke.
-- Auch die großen Schritt-Headings (`h2`, insbesondere „Basisstation auswählen“ und „X Kameras“) nutzen Inter Tight. Die Schriftfamilie ist über `--font-heading` zentral definiert.
-- Der Hero-Textblock (Eyebrow, Headline und Erklärtext) wird entfernt. Der Discover-Button bleibt als einzige Aktion im Hero-Bereich erhalten.
-- Die Schrift steht unter der SIL Open Font License 1.1. Der Lizenztext liegt als `web/INTERTIGHT-LICENSE.txt` bei und ist im Lizenzdialog verlinkt.
-- Inter Tight erscheint im Lizenzdialog, in `specs/sources.md` und in `sbom/README.md`. Da die Schrift keinen Paketmanager-Eintrag hat, erscheint sie nicht automatisch in der SBOM.
+- Inter Tight ships as a locally bundled web font under `web/fonts/`:
+  - `web/fonts/inter-tight-latin.woff2` (regular 400)
+  - `web/fonts/inter-tight-bold-latin.woff2` (bold 700)
+- `web/style.css` loads both cuts through `@font-face`. `font-display: swap`
+  keeps text readable while the font loads. There is no Google Fonts or other CDN
+  call.
+- The brand name in the top bar (`.brand`) uses Inter Tight. The name "AkkuCam"
+  renders bold (700) through the existing `<strong>`; the tagline stays at normal
+  weight.
+- The large step headings (`h2`, especially "Select a base station" and
+  "X cameras") also use Inter Tight. The font family is defined centrally through
+  `--font-heading`.
+- The hero text block (eyebrow, headline and explanatory text) is removed. The
+  discover button stays as the only action in the hero area.
+- The font is under the SIL Open Font License 1.1. The license text ships as
+  `web/INTERTIGHT-LICENSE.txt` and is linked in the license dialog.
+- Inter Tight appears in the license dialog, in `specs/sources.md` and in
+  `sbom/README.md`. The font has no package-manager entry, so it does not appear
+  in the SBOM automatically.
 
-## Begründung
+## Reasoning
 
-- **Cloudfrei:** Lokale WOFF2-Dateien vermeiden externe Abhängigkeiten und funktionieren offline.
-- **Lizenzklarheit:** Die OFL erlaubt die lokale Einbindung; der Lizenztext wird mitgeliefert und ist im Dashboard erreichbar.
-- **Geringe Payload:** Zwei statische Schnitte reichen für Markenname und Schritt-Headings. Eine variable Schrift wäre flexibler, aber für diesen Einsatz unnötig größer.
-- **Gezielter Einsatz:** Markenname und Schritt-Headings wechseln die Schrift. Die übrige Oberfläche bleibt bei der Systemschrift, was die Lesbarkeit und Konsistenz erhält.
-- **Weniger Ablenkung:** Der entfernte Hero-Textblock macht den Einstieg direkter; der Discover-Button bleibt als klare Handlungsaufforderung.
+- **Cloud-free:** local WOFF2 files avoid external dependencies and work offline.
+- **License clarity:** the OFL allows local embedding; the license text ships
+  along and is reachable in the dashboard.
+- **Small payload:** two static cuts are enough for the brand name and step
+  headings. A variable font would be more flexible but unnecessarily larger for
+  this use.
+- **Targeted use:** the brand name and step headings switch fonts. The rest of the
+  interface keeps the system font, which preserves readability and consistency.
+- **Less distraction:** the removed hero text block makes the entry point more
+  direct; the discover button stays as a clear call to action.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Google-Fonts-CDN einbinden:** Verstößt gegen die Cloudfrei-Vorgabe. Verworfen.
-- **Variable Font ausliefern:** Größere Datei und mehr Komplexität für zwei benötigte Schnitte. Verworfen.
-- **Hero-Headline behalten und nur die Schrift ändern:** Wurde zugunsten des aufgeräumten Einstiegs verworfen.
-- **Markenname in der Systemschrift belassen:** Der gewünschte visuelle Akzent ginge verloren. Verworfen.
+- **Load from the Google Fonts CDN:** violates the cloud-free rule. Rejected.
+- **Ship a variable font:** larger file and more complexity for two needed cuts.
+  Rejected.
+- **Keep the hero headline and change only the font:** rejected in favor of the
+  cleaner entry point.
+- **Leave the brand name in the system font:** the intended visual accent would be
+  lost. Rejected.
 
-## Konsequenzen
+## Consequences
 
-- Neue Dateien: `web/fonts/inter-tight-latin.woff2`, `web/fonts/inter-tight-bold-latin.woff2`, `web/INTERTIGHT-LICENSE.txt`.
-- `web/style.css` enthält zwei `@font-face`-Blöcke, die Variable `--font-heading` und die Typografie für `.brand` und `h2`.
-- Der Hero-Textblock und die zugehörigen `hero.*`-i18n-Schlüssel entfallen. Der Discover-Button bleibt.
-- Der Lizenzdialog, `specs/sources.md` und `sbom/README.md` führen Inter Tight mit OFL-1.1 auf.
-- Neue Tests: `web/e2e/branding.spec.ts` prüft, dass Markenname und Schritt-Headings Inter Tight verwenden, die Schriftdateien und der Lizenztext ausgeliefert werden.
-- Bei einem Wechsel der Schrift oder weiterer Schnitte müssen Lizenzdialog, `specs/sources.md` und die SBOM-Dokumentation aktualisiert werden.
+- New files: `web/fonts/inter-tight-latin.woff2`,
+  `web/fonts/inter-tight-bold-latin.woff2`, `web/INTERTIGHT-LICENSE.txt`.
+- `web/style.css` contains two `@font-face` blocks, the `--font-heading` variable
+  and the typography for `.brand` and `h2`.
+- The hero text block and its `hero.*` i18n keys disappear. The discover button
+  stays.
+- The license dialog, `specs/sources.md` and `sbom/README.md` list Inter Tight
+  with OFL-1.1.
+- New tests: `web/e2e/branding.spec.ts` checks that the brand name and step
+  headings use Inter Tight and that the font files and license text are served.
+- Changing the font or adding cuts requires updating the license dialog,
+  `specs/sources.md` and the SBOM documentation.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-- Es bleibt bei zwei Schnitten (400/700). Andere Gewichte synthetisiert der
-  Browser und sind in `style.css` unzulässig (ADR-0029).
-- Der Geltungsbereich ist `h2` und der Markenblock. `h3`, Metrik-Überschriften
-  und Fließtext nutzen die Systemschrift; die frühere Ausweitung auf alle
-  `h1–h3` war ein Umsetzungsfehler.
-- „Inter“ ist aus dem Body-Stack entfernt, weil die Datei nicht ausgeliefert
-  wird.
+- It stays at two cuts (400/700). The browser synthesizes other weights and
+  `style.css` rejects them (ADR-0029).
+- The scope is `h2` and the brand block. `h3`, metric headings and body text use
+  the system font; the earlier expansion to all `h1–h3` was an implementation
+  mistake.
+- "Inter" is removed from the body stack because the file does not ship.
 
-## Verweise
+## References
 
-- ADR-0003: lokal, ohne Cloud-Fallback
-- ADR-0021: zweisprachige UI
-- ADR-0022: gebündelte Web-Assets, Lizenzhinweise und SBOM
+- ADR-0003: local, no cloud fallback
+- ADR-0021: bilingual UI
+- ADR-0022: bundled web assets, license notices and SBOM
 - `specs/sources.md`, `specs/architecture.md`, `specs/testing.md`
 - `web/style.css`, `web/INTERTIGHT-LICENSE.txt`

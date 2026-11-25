@@ -1,57 +1,85 @@
-# ADR-0033: Statische Analyse im Toolchain-Container
+# ADR-0033: Static analysis in the toolchain container
 
 - Status: Accepted
-- Datum: 2026-11-25
+- Date: 2026-11-25
 
-## Kontext
+## Context
 
-Bis hierhin sicherten `go vet`, Unit- und Integrationstests, Fuzzing-Seeds, Playwright und die SBOM die Qualität. Es fehlte eine Prüfung auf ungeprüfte Fehler, Injection-Senken, CVEs in der Go-Standardbibliothek und eine Analyse der Browserquellen; `web/app.js` sieht kein Go-Werkzeug. Werkzeuge direkt auf NixOS zu installieren würde den Docker-Workflow verlassen und eine zweite, driftende Toolchain in der CI erzeugen.
+Until now `go vet`, unit and integration tests, fuzzing seeds, Playwright and the
+SBOM secured quality. Missing were a check for unchecked errors, injection sinks,
+CVEs in the Go standard library and an analysis of the browser sources;
+`web/app.js` sees no Go tool. Installing tools directly on NixOS would leave the
+Docker workflow and create a second, drifting toolchain in CI.
 
-Der Probelauf mit dem bestehenden Stand ergab: 21 Go-Findings, 0 Semgrep-Findings, 2 Shellcheck-Warnungen, 1 Hadolint-Warnung – und 32 erreichbare CVEs in der Go-Standardbibliothek, weil Go 1.23 seit August 2025 keine Fixes mehr erhält.
+A trial run on the existing state produced 21 Go findings, 0 Semgrep findings, 2
+Shellcheck warnings, 1 Hadolint warning, and 32 reachable CVEs in the Go standard
+library because Go 1.23 has received no fixes since August 2025.
 
-## Entscheidung
+## Decision
 
-- `./scripts/lint.sh` (Ziel `make lint`) führt jede Analyse in einem gepinnten Container-Image aus. Die Image-Variablen im Skript sind die einzige Versionsquelle für lokal und CI; es gibt kein Nix-Paket und keinen CI-eigenen Installer.
-- **golangci-lint** v2.15.0, `default: standard` plus `gosec`, `errorlint`, `noctx`, `bodyclose`, `misspell`; Konfiguration in `.golangci.yml`.
-- **govulncheck** v1.10.0 im Go-Image der Build-Stage (Go 1.27.4) und damit auf derselben Standardbibliothek wie das Binary.
-- **semgrep** 1.187.0 mit `p/golang`, `p/javascript`, `p/secrets` und eigenen Regeln in `.semgrep/gateway.yml`: keine ausgehenden HTTP-Clients (ADR-0003), kein ausgehendes TCP, kein Sicherheitscode in `localStorage`/`sessionStorage` (ADR-0007, ADR-0012).
-- **shellcheck**, **hadolint**, **actionlint** für Skripte, Dockerfile und Workflows.
-- Alle Werkzeuge laufen blockierend. Ausnahmen stehen ausschließlich in `.golangci.yml` und sind dort begründet: G115 im Protokollpaket `internal/ppcs`, G304/G306 in Tests.
-- Jedes `//nolint` trägt Grund und Verweis. Aktuell existiert genau eines: G706 im Request-Logger, weil der Pfad mit `%q` maskiert wird und `log` keine Escapes interpretiert.
-- Semgrep lädt die Registry-Regelsets zur Laufzeit und sendet keine Metriken (`--metrics=off`, `SEMGREP_SEND_METRICS=off`). Die eigenen Regeln liegen im Repo.
-- Der Toolchain-Bump auf Go 1.27 gehört zum selben Schritt, weil das Analyse-Gate auf einem EOL-Toolchain nur CVE-Rauschen erzeugt.
+- `./scripts/lint.sh` (target `make lint`) runs every analysis in a pinned
+  container image. The image variables in the script are the only version source
+  for local and CI; there is no Nix package and no CI-specific installer.
+- **golangci-lint** v2.15.0, `default: standard` plus `gosec`, `errorlint`, `noctx`,
+  `bodyclose`, `misspell`; configuration in `.golangci.yml`.
+- **govulncheck** v1.10.0 in the Go image of the build stage (Go 1.27.4) and
+  therefore on the same standard library as the binary.
+- **semgrep** 1.187.0 with `p/golang`, `p/javascript`, `p/secrets` and custom rules
+  in `.semgrep/gateway.yml`: no outbound HTTP clients (ADR-0003), no outbound TCP,
+  no security code in `localStorage`/`sessionStorage` (ADR-0007, ADR-0012).
+- **shellcheck**, **hadolint**, **actionlint** for scripts, Dockerfile and
+  workflows.
+- Every tool blocks. Exceptions live only in `.golangci.yml` and are justified
+  there: G115 in the protocol package `internal/ppcs`, G304/G306 in tests.
+- Every `//nolint` carries a reason and a reference. Currently there is exactly one:
+  G706 in the request logger because the path is masked with `%q` and `log` does
+  not interpret escapes.
+- Semgrep fetches the registry rulesets at runtime and sends no metrics
+  (`--metrics=off`, `SEMGREP_SEND_METRICS=off`). The custom rules live in the repo.
+- The toolchain bump to Go 1.27 belongs to the same step because an analysis gate
+  on an EOL toolchain only produces CVE noise.
 
-## Begründung
+## Reasoning
 
-- Container-Pinning hält NixOS-Host, lokale Läufe und CI identisch und passt zum bestehenden Muster von `test.sh` und `sbom.sh`.
-- Semgrep deckt `web/*.js` ohne Node, npm oder Build-Schritt ab.
-- govulncheck prüft erreichbaren Code statt nur Paketversionen und ersetzt damit kein SBOM, ergänzt es aber um die Frage „rufen wir das an?“.
-- Die eigenen Semgrep-Regeln machen die Hard Rules prüfbar, die bisher nur in Prosa standen.
-- Analysewerkzeuge landen nicht im Image; `go.mod` bleibt ohne Fremdmodule, SBOM und Lizenzdialog ändern sich nicht.
+- Container pinning keeps the NixOS host, local runs and CI identical and matches
+  the existing pattern of `test.sh` and `sbom.sh`.
+- Semgrep covers `web/*.js` without Node, npm or a build step.
+- govulncheck checks reachable code instead of package versions only; it does not
+  replace the SBOM but adds the question "do we call this?".
+- The custom Semgrep rules make the hard rules testable that previously existed only
+  in prose.
+- Analysis tools do not land in the image; `go.mod` stays without third-party
+  modules, and SBOM and license dialog do not change.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Nur `go vet` und staticcheck**: keine Sicherheitsregeln, kein Frontend.
-- **gosec und staticcheck einzeln**: mehr Skripte für dieselbe Abdeckung.
-- **ESLint** für das Frontend: npm plus Build-Schritt, verstößt gegen die Frontend-Regel.
-- **CodeQL**: bessere Taint-Analyse, aber an GitHub Actions und für private Repos an GHAS gebunden; es gibt noch kein Remote.
-- **nix-shell oder Flake-DevShell**: nixpkgs-Version driftet, CI bräuchte ein zweites Setup, und Semgrep ist dort nicht versionsgleich.
-- **govulncheck auf Go 1.23 belassen**: 32 erreichbare Standardbibliothek-CVEs, davon Treffer über `net/http.ListenAndServe` – also den Kern des Gateways.
+- **`go vet` and staticcheck only**: no security rules, no frontend.
+- **gosec and staticcheck separately**: more scripts for the same coverage.
+- **ESLint** for the frontend: npm plus a build step, violates the frontend rule.
+- **CodeQL**: better taint analysis, but tied to GitHub Actions and to GHAS for
+  private repositories; there is no remote yet.
+- **nix-shell or Flake dev shell**: the nixpkgs version drifts, CI would need a
+  second setup, and Semgrep is not version-identical there.
+- **Leave govulncheck on Go 1.23**: 32 reachable standard library CVEs, including
+  hits through `net/http.ListenAndServe`, the core of the gateway.
 
-## Konsequenzen
+## Consequences
 
-- Neue Befehle: `make lint`, `./scripts/lint.sh`; neuer CI-Job `lint`.
-- Semgrep-Regeln ändern sich unabhängig vom Repo. Ein neues Finding wird behoben oder eng ausgeschlossen, nie das Gate abgeschaltet.
-- Lint braucht Netz für Image-Pulls und Registry-Regeln.
-- Bei einem Go-Bump müssen Go-Image, govulncheck und golangci-lint zusammenpassen; golangci-lint muss mit mindestens der Modul-Go-Version gebaut sein.
-- Kein Einfluss auf Laufzeit-Image, SBOM oder Lizenzdialog.
-- Phase 2, offen und in `specs/roadmap.md` notiert: Container-Image-Scan mit Trivy auf dem gebauten Image, ergänzend zur SBOM.
+- New commands: `make lint`, `./scripts/lint.sh`; new CI job `lint`.
+- Semgrep rules change independently of the repository. A new finding is fixed or
+  narrowly excluded, never by turning off the gate.
+- Lint needs network access for image pulls and registry rules.
+- On a Go bump, the Go image, govulncheck and golangci-lint must match;
+  golangci-lint must be built with at least the module Go version.
+- No effect on the runtime image, SBOM or license dialog.
+- Phase 2, open and noted in `specs/roadmap.md`: container image scan with Trivy on
+  the built image, complementing the SBOM.
 
-## Verweise
+## References
 
-- ADR-0003: lokal ohne Cloud-Fallback
-- ADR-0006: H.264-Passthrough und HLS
-- ADR-0007: Zugangsdaten nur im Speicher
-- ADR-0012: Sicherheitscode im Browser-RAM
-- ADR-0018: Test- und Codequalitätskonventionen
+- ADR-0003: Local operation without cloud fallback
+- ADR-0006: H.264 passthrough and HLS
+- ADR-0007: Credentials in memory only
+- ADR-0012: Security code in browser RAM
+- ADR-0018: Test and code quality conventions
 - `specs/testing.md`, `specs/security.md`, `.golangci.yml`, `.semgrep/gateway.yml`

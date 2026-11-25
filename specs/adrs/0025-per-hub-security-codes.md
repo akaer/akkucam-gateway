@@ -1,56 +1,74 @@
-# ADR-0025: Sicherheitscode je Basisstation im Browser-RAM
+# ADR-0025: Security code per base station in browser RAM
 
 - Status: Accepted
-- Datum: 2026-11-22
-- Ergänzt: [ADR-0012](0012-browser-session-credential.md)
+- Date: 2026-11-22
+- Amends: [ADR-0012](0012-browser-session-credential.md)
 
-## Kontext
+## Context
 
-ADR-0012 ging von einer einzelnen Basisstation aus und hielt genau einen Sicherheitscode in einer JavaScript-Variablen. Sobald zwei Basisstationen mit unterschiedlichen Codes im Netz stehen, entsperrt die Oberfläche beide mit demselben Code. Die zweite Basisstation lehnt die Anmeldung ab (`unauthorized`), und der Nutzer kann sie ohne Neuladen der Seite nicht mehr öffnen.
+ADR-0012 assumed a single base station and kept exactly one security code in a
+JavaScript variable. As soon as two base stations with different codes sit on the
+network, the interface unlocks both with the same code. The second base station
+rejects the login (`unauthorized`), and the user cannot open it without reloading
+the page.
 
-## Entscheidung
+## Decision
 
-- Sicherheitscodes liegen im Browser-RAM in einer `Map`, adressiert über die DID der Basisstation (`state.credentials`). Die DID ist über Discovery-Läufe stabil; fehlt sie, dient die IP als Schlüssel.
-- Der Code-Dialog nennt die Basisstation (DID/Modell), damit klar ist, welcher Code erwartet wird. Das Eingabefeld bleibt bei jedem Öffnen leer.
-- Jede Hub-Karte zeigt einen Chip „Code gespeichert“ mit einem „Code entfernen“-Knopf, sobald für diese DID ein Code im RAM liegt. Der Chip erscheint nur bei vorhandenem Code.
-- Der Knopf in den Diagnosen löscht **alle** Codes (`state.credentials.clear()`).
-- Antwortet die API mit `unauthorized`, wird der Code der betroffenen DID verworfen. Der nächste Versuch fragt den Code erneut ab; es gibt keinen automatischen Wiederholungsversuch.
-- „Alle starten“ und parallele Kanalaktionen teilen sich einen Prompt pro DID (Single-Flight), damit nicht mehrere Dialoge aufgehen.
-- Es bleibt bei ADR-0012: keine Speicherung in `localStorage`, `sessionStorage`, Cookies, IndexedDB oder auf dem Server. Ein Reload leert die Map.
+- Security codes live in browser RAM in a `Map`, addressed by the base station DID
+  (`state.credentials`). The DID stays stable across discovery runs; when it is
+  missing, the IP serves as the key.
+- The code dialog names the base station (DID/model) so it is clear which code is
+  expected. The input stays empty each time it opens.
+- Each hub card shows a "Code saved" chip with a "Remove code" button as soon as a
+  code for that DID sits in RAM. The chip appears only when a code exists.
+- The button in diagnostics clears **all** codes (`state.credentials.clear()`).
+- When the API answers with `unauthorized`, the code for the affected DID is
+  discarded. The next attempt asks for the code again; there is no automatic retry.
+- "Start all" and parallel channel actions share one prompt per DID (single
+  flight), so several dialogs do not open at once.
+- ADR-0012 still applies: no storage in `localStorage`, `sessionStorage`, cookies,
+  IndexedDB or on the server. A reload empties the map.
 
-## Begründung
+## Reasoning
 
-- **Sicherheit:** Der Code bleibt flüchtig im Browser-RAM; die Zuordnung zu einer DID ist reine Laufzeitinformation.
-- **Bedienbarkeit:** Mehrere Basisstationen funktionieren ohne wiederholtes Neuladen; einmal eingegebene Codes werden je Station wiederverwendet.
-- **Fehlerrobustheit:** Ein abgelehnter Code blockiert die Station nicht dauerhaft, weil er nach `unauthorized` verworfen wird.
+- **Security:** the code stays transient in browser RAM; the mapping to a DID is
+  runtime information only.
+- **Usability:** several base stations work without repeated reloads; codes entered
+  once are reused per station.
+- **Error resilience:** a rejected code does not block the station permanently
+  because it is discarded after `unauthorized`.
 
-## Konsequenzen
+## Consequences
 
-- `web/app.js`: `state.credentials` ersetzt `state.securityCode`; `requestSecurityCode(hub)` mit Single-Flight; `forgetCredential`; `unauthorized` verwirft den Code.
-- `web/index.html`: Hub-Name im Code-Dialog (`#code-dialog-hub`), Chip je Hub-Karte, Diagnose-Knopf „Alle Sicherheitscodes aus dem Browserspeicher entfernen“.
-- `web/style.css`: Layout für `.hub-actions`, `.hub-credential`, `.dialog-hub`.
-- `web/locales/{en,de}.json`: `dialog.hub`, `hub.codeSaved`, `hub.forgetCode`, `notice.forgotAllCodes`; `notice.forgotCode` und `dialog.hint` angepasst.
-- Keine API-, OpenAPI- oder SBOM-Änderung: der Server erhält den Code weiterhin pro Request.
-- Neue Tests: `web/e2e/credentials.spec.ts` (getrennte Codes, Wiederverwendung, Verwerfen nach 401, Code entfernen je Hub).
+- `web/app.js`: `state.credentials` replaces `state.securityCode`;
+  `requestSecurityCode(hub)` with single flight; `forgetCredential`; `unauthorized`
+  discards the code.
+- `web/index.html`: hub name in the code dialog (`#code-dialog-hub`), chip per hub
+  card, diagnostics button "Remove all security codes from browser storage".
+- `web/style.css`: layout for `.hub-actions`, `.hub-credential`, `.dialog-hub`.
+- `web/locales/{en,de}.json`: `dialog.hub`, `hub.codeSaved`, `hub.forgetCode`,
+  `notice.forgotAllCodes`; `notice.forgotCode` and `dialog.hint` adjusted.
+- No API, OpenAPI or SBOM change: the server still receives the code per request.
+- New tests: `web/e2e/credentials.spec.ts` (separate codes, reuse, discard after
+  401, remove code per hub).
 
-## Verweise
+## References
 
-- ADR-0007: keine Zugangsdaten auf Platte
-- ADR-0012: Sicherheitscode bis zum Reload im Browser-RAM
-- ADR-0016: stabile API-Fehlercodes (`unauthorized`)
+- ADR-0007: no credentials on disk
+- ADR-0012: security code in browser RAM until reload
+- ADR-0016: stable API error codes (`unauthorized`)
 - `specs/security.md`, `specs/product.md`, `specs/testing.md`
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Der globale Knopf „Alle Sicherheitscodes aus dem Browserspeicher entfernen“
-existiert nach ADR-0027 an zwei Stellen: im Diagnosebereich der Setup-Seite
-(`#forget-code`) und im Hub-Manager der Wand (`#forget-all-codes`). Beide rufen
-denselben Handler (`forgetAllCredentials`) auf und löschen die gesamte Map.
+After ADR-0027 the global button "Remove all security codes from browser storage"
+exists in two places: in the diagnostics area of the setup page (`#forget-code`)
+and in the wall hub manager (`#forget-all-codes`). Both call the same handler
+(`forgetAllCredentials`) and clear the whole map.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Der globale Knopf heißt in der Oberfläche „Alle Sicherheitscodes aus dem
-Browser-Arbeitsspeicher entfernen“ und benötigt zwei Klicks: Der erste armiert
-die Aktion und ändert die Beschriftung, der zweite entfernt die Codes
-(ADR-0028). Die Formulierung „Browserspeicher“ entfällt, weil sie auch
-`localStorage` bezeichnen könnte.
+In the interface the global button is called "Remove all security codes from
+browser working memory" and needs two clicks: the first arms the action and
+changes the label, the second removes the codes (ADR-0028). The wording "browser
+storage" is gone because it could also mean `localStorage`.

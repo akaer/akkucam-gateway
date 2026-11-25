@@ -1,103 +1,99 @@
-# ADR-0032: Semantische Versionierung und Branch-Workflow
+# ADR-0032: Semantic versioning and branch workflow
 
 - Status: Accepted
-- Datum: 2026-11-25
+- Date: 2026-11-25
 
-## Kontext
+## Context
 
-Bis zum ersten Commit gab es weder Releases noch einen Branch-Workflow. Das
-Gateway wird als Container ausgeliefert, und im Betrieb muss erkennbar sein,
-welcher Stand läuft – besonders nach einem Kamera- oder Protokollfix. Ein
-Versionsstring ohne Bezug zum Quellstand reicht dafür nicht.
+Before the first commit there were no releases and no branch workflow. The gateway
+ships as a container, and operation needs to show which build is running,
+especially after a camera or protocol fix. A version string without a link to the
+source revision is not enough.
 
-## Entscheidung
+## Decision
 
-### Branch und Pull Request
+### Branch and pull request
 
-- `main` ist geschützt und immer baubar. Änderungen laufen über
-  `feature/<slug>` oder `fix/<slug>` und einen Pull Request. Reine
-  Dokumentationsänderungen dürfen `docs/<slug>` nutzen.
-- Der Pull Request wird nach grüner CI als Squash gemergt, der Branch danach
-  gelöscht. Direkte Commits auf `main` sind ausgeschlossen, auch für
-  Versionsbumps. Vorlage: `.github/pull_request_template.md`.
+- `main` is protected and always buildable. Changes run through `feature/<slug>` or
+  `fix/<slug>` and a pull request. Documentation-only changes may use `docs/<slug>`.
+- The pull request merges as a squash after green CI, then the branch is deleted.
+  Direct commits to `main` are excluded, including version bumps. Template:
+  `.github/pull_request_template.md`.
 
 ### Version
 
-- Versionierung folgt Semantic Versioning 2.0.0. Der Major bleibt bis zum
-  stabilen `1.0.0` bei `0`; die erste Version ist `0.1.0-beta.1`.
-- Vor `1.0.0`: `MINOR` für Features und Breaking Changes, `PATCH` für
-  abwärtskompatible Fixes. Vorabversionen tragen `-beta.N`.
-- Die Version steht ausschließlich in `internal/version/version.go`. Sie wird
-  in dem Pull Request erhöht, der das Release ausmacht. Nach dem Merge wird
-  `main` mit `v<version>` getaggt (zum Beispiel `v0.1.0-beta.1`). Tags werden
-  nicht verschoben oder wiederverwendet. Docker-Tags tragen die Version ohne
-  Commit-Hash.
+- Versioning follows Semantic Versioning 2.0.0. The major stays at `0` until the
+  stable `1.0.0`; the first version is `0.1.0-beta.1`.
+- Before `1.0.0`: `MINOR` for features and breaking changes, `PATCH` for
+  backwards-compatible fixes. Prereleases carry `-beta.N`.
+- The version lives only in `internal/version/version.go`. It is bumped in the pull
+  request that makes the release. After the merge, `main` is tagged with
+  `v<version>` (for example `v0.1.0-beta.1`). Tags are never moved or reused. Docker
+  tags carry the version without the commit hash.
 
-### Commit im Build
+### Commit in the build
 
-- `Dockerfile`, `Makefile`, `scripts/test.sh` und CI übergeben den Git-Commit
-  als Build-Argument `COMMIT`; `-ldflags -X` schreibt ihn ins Binary.
-- Lokale `go run`-Builds lesen den VCS-Stempel aus `debug.ReadBuildInfo()`.
-- `GET /api/version` liefert `version` und, sofern bekannt, den siebenstelligen
-  `commit`. Der Hilfe-Dialog zeigt beides in einer stillen Zeile. Fehlt der
-  Commit, entfällt das Feld; es wird kein Platzhalter erfunden.
+- `Dockerfile`, `Makefile`, `scripts/test.sh` and CI pass the Git commit as the
+  build argument `COMMIT`; `-ldflags -X` writes it into the binary.
+- Local `go run` builds read the VCS stamp from `debug.ReadBuildInfo()`.
+- `GET /api/version` returns `version` and, when known, the seven-character
+  `commit`. The help dialog shows both in a quiet line. If the commit is missing,
+  the field is dropped; no placeholder is invented.
 
-## Begründung
+## Reasoning
 
-- Ein PR pro Änderung hält `main` baubar und macht CI-Nachweise und Review
-  nachvollziehbar.
-- SemVer Plus Commit-Hash trennt Release-Nummer und exakten Quellstand. Der
-  Hash allein ist für Menschen unlesbar, die Version allein nicht eindeutig.
-- Eine einzige Versionsquelle in Go vermeidet Drift zwischen Datei, Tag und
-  Binary; der Commit wird beim Build injiziert, damit das Image reproduzierbar
-  bleibt und kein `.git` im Build-Kontext landen muss.
-- Die Anzeige im Hilfe-Dialog folgt ADR-0015: Diagnoseinformation erscheint auf
-  Nachfrage, nicht dauerhaft in der Topbar.
+- One PR per change keeps `main` buildable and makes CI evidence and review
+  traceable.
+- SemVer plus commit hash separates release number and exact source revision. The
+  hash alone is unreadable for humans, the version alone is not unique.
+- A single version source in Go avoids drift between file, tag and binary; the
+  commit is injected at build time so the image stays reproducible and no `.git`
+  has to land in the build context.
+- The help dialog display follows ADR-0015: diagnostic information appears on
+  request, not permanently in the top bar.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Nur Git-Tags ohne Versionskonstante:** erfordert `git describe` im Build und
-  liefert in Quellarchiven oder ohne Git keinen Wert.
-- **Version über `ARG VERSION` im Dockerfile:** verlagert die Quelle in
-  Build-Skripte und Compose-Dateien; Tag und Binary können auseinanderlaufen.
-- **Version im `/api/health`:** vermischt Liveness mit Build-Metadaten und
-  zwingt Monitoring-Endpunkte zu einem zusätzlichen Vertragsfeld.
-- **`debug.ReadBuildInfo()` allein:** funktioniert nicht im Container, weil der
-  Build-Kontext kein `.git` enthält.
-- **Version in der Topbar:** dauerhafte Anzeige ohne Nutzwert im Alltag und
-  zusätzliche Konkurrenz zur Live-Wand.
+- **Git tags only, no version constant:** requires `git describe` in the build and
+  returns nothing in source archives or without Git.
+- **Version through `ARG VERSION` in the Dockerfile:** moves the source into build
+  scripts and Compose files; tag and binary can drift apart.
+- **Version in `/api/health`:** mixes liveness with build metadata and forces
+  monitoring endpoints to carry an extra contract field.
+- **`debug.ReadBuildInfo()` alone:** does not work in the container because the
+  build context contains no `.git`.
+- **Version in the top bar:** permanent display without everyday value and extra
+  competition with the live wall.
 
-## Konsequenzen
+## Consequences
 
-- Jede Änderung durchläuft einen Pull Request; das kostet bei Ein-Personen-
-  Änderungen einen zusätzlichen Schritt.
-- Ein Release benötigt einen Versionsbump, einen Merge und einen Tag. Ohne Tag
-  bleibt `main` ein Zwischenstand, auch wenn die Version bereits erhöht ist.
-- Ein roher `docker compose build` ohne `COMMIT` zeigt keinen Hash. Die
-  dokumentierten Wege `make up`, `make test` und CI setzen ihn.
-- Branch Protection und die Pflicht-Statuschecks sind GitHub-Einstellungen und
-  nicht als Datei im Repository versioniert.
+- Every change runs through a pull request; for single-person changes that costs an
+  extra step.
+- A release needs a version bump, a merge and a tag. Without a tag, `main` stays an
+  intermediate state even when the version is already bumped.
+- A plain `docker compose build` without `COMMIT` shows no hash. The documented
+  paths `make up`, `make test` and CI set it.
+- Branch protection and the required status checks are GitHub settings and not
+  versioned as a file in the repository.
 
-## Verweise
+## References
 
 - [Semantic Versioning 2.0.0](https://semver.org/)
-- ADR-0015: Progressive Disclosure
-- ADR-0017: OpenAPI als API-Vertrag
-- ADR-0024: Hilfe-Popup im Topbar
+- ADR-0015: Progressive disclosure
+- ADR-0017: OpenAPI as the API contract
+- ADR-0024: Help popup in the top bar
 - `CONTRIBUTING.md`, `.github/pull_request_template.md`
 
-## Nachtrag 2026-11-25
+## Addendum 2026-11-25
 
-- `main` und die Release-Tags `v*` sind als GitHub-Rulesets geschützt: Pull
-  Request, grüne Checks, lineare History, keine Force-Pushes, keine
-  Tag-Änderungen. Die Regeln liegen in GitHub, nicht im Repository.
-- Ein Tag `v<version>` startet `.github/workflows/release.yml`. Der Workflow
-  prüft, dass Tag und `internal/version/version.go` übereinstimmen und der
-  Commit auf `main` liegt, baut das Image für `linux/amd64` und `linux/arm64`,
-  schiebt es nach GHCR und legt einen GitHub Release mit generierten Notes und
-  den SBOM-Dateien an.
-- Das Image trägt OCI-Labels mit Quelle, Lizenz, Version und Revision; das
-  verlinkt das GHCR-Paket mit dem Repository.
-- Das erste veröffentlichte Release ist `v0.1.0-beta.2`. Der Tag
-  `v0.1.0-beta.1` bleibt unverändert, wird aber nicht als Release
-  veröffentlicht.
+- `main` and the release tags `v*` are protected as GitHub rulesets: pull request,
+  green checks, linear history, no force pushes, no tag changes. The rules live in
+  GitHub, not in the repository.
+- A tag `v<version>` starts `.github/workflows/release.yml`. The workflow checks
+  that the tag and `internal/version/version.go` match and that the commit is on
+  `main`, builds the image for `linux/amd64` and `linux/arm64`, pushes it to GHCR
+  and creates a GitHub release with generated notes and the SBOM files.
+- The image carries OCI labels with source, license, version and revision; that
+  links the GHCR package to the repository.
+- The first published release is `v0.1.0-beta.2`. The tag `v0.1.0-beta.1` stays
+  unchanged but is not published as a release.
