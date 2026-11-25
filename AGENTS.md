@@ -28,9 +28,11 @@ frontend rules, `tests/README.md` for test layout.
 7. **Vendored assets only.** No CDN, no Google Fonts. Every bundled component
    needs its license file in `web/`, an entry in the license dialog, an entry
    in `specs/sources.md` and a refreshed `sbom/` snapshot (ADR-0022/0023).
-8. **PR-only main.** Every change runs through `feature/<slug>` or
-   `fix/<slug>` and a pull request; `main` stays buildable. Releases bump
-   `internal/version/version.go` and tag `v<version>` (ADR-0032).
+8. **PR-only main once a remote exists.** Every change runs through
+   `feature/<slug>` or `fix/<slug>` and a pull request; `main` stays buildable.
+   While no `origin` is configured, a local merge into `main` is allowed.
+   Releases bump `internal/version/version.go` and tag `v<version>`
+   (ADR-0032).
 
 ## Runtime and configuration
 
@@ -103,9 +105,10 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
    Update both in the same change and keep sections, commands, ports,
    environment variables, links and screenshots in step with the code.
    `tests/readme_test.go` checks the structure; the wording is reviewed by hand.
-8. The change went through a `feature/` or `fix/` branch and a pull request.
-   A release bumps the version in `internal/version/version.go` and tags
-   `main` with `v<version>` (ADR-0032).
+8. The change went through a `feature/` or `fix/` branch and a pull request,
+   or was merged into `main` locally while no remote exists. A release bumps
+   the version in `internal/version/version.go` and tags `main` with
+   `v<version>` (ADR-0032).
 
 ## Pointers
 
