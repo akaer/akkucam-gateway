@@ -13,14 +13,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: ./scripts/lint.sh
 
   go:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.27.x'
           cache: false
@@ -28,7 +28,7 @@ jobs:
       - run: go test -count=1 ./...
       - run: go test -race -count=1 ./...
       - run: go test -coverprofile=coverage.out ./...
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage.out
@@ -36,11 +36,11 @@ jobs:
   container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build --build-arg COMMIT="${GITHUB_SHA}" -t akkucam-gateway:test .
       - name: Generate SBOM
         run: ./scripts/sbom.sh akkucam-gateway:test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: |
@@ -52,7 +52,7 @@ jobs:
     env:
       COMMIT: ${{ github.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker compose up -d --build --wait --wait-timeout 120
       - run: ./scripts/test-e2e.sh
       - if: always()
