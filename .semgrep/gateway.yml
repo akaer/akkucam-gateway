@@ -5,8 +5,8 @@ rules:
     languages: [go]
     severity: ERROR
     message: >-
-      Der Gateway spricht nur LAN-UDP und lokales HTTP aus (ADR-0003). Ein
-      ausgehender HTTP-Client braucht eine neue Entscheidung.
+      The gateway speaks only LAN UDP and local HTTP (ADR-0003). An outbound
+      HTTP client needs a new decision.
     patterns:
       - pattern-either:
           - pattern: http.Get(...)
@@ -21,8 +21,8 @@ rules:
     languages: [go]
     severity: ERROR
     message: >-
-      Discovery und PPCS laufen ausschliesslich ueber UDP im LAN (ADR-0003).
-      Ein ausgehender TCP-Dial braucht eine neue Entscheidung.
+      Discovery and PPCS run over UDP in the LAN only (ADR-0003). An outbound
+      TCP dial needs a new decision.
     patterns:
       - pattern-either:
           - pattern: net.Dial(...)
@@ -34,8 +34,8 @@ rules:
     languages: [javascript, typescript]
     severity: ERROR
     message: >-
-      Sicherheitscodes bleiben im Browser-RAM (ADR-0007, ADR-0012). Nicht in
-      localStorage oder sessionStorage schreiben.
+      Security codes stay in browser RAM (ADR-0007, ADR-0012). Do not write them
+      to localStorage or sessionStorage.
     patterns:
       - pattern-regex: (local|session)Storage\.setItem\(\s*['"][^'"]*(code|pin|secret|token|password)
 
@@ -43,8 +43,8 @@ rules:
     languages: [javascript, typescript]
     severity: ERROR
     message: >-
-      Sicherheitscodes bleiben im Browser-RAM (ADR-0007, ADR-0012). Nicht in
-      localStorage oder sessionStorage schreiben.
+      Security codes stay in browser RAM (ADR-0007, ADR-0012). Do not write them
+      to localStorage or sessionStorage.
     patterns:
       - pattern-either:
           - pattern: localStorage.setItem($K, $V)

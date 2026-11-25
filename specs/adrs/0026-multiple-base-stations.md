@@ -1,73 +1,73 @@
-# ADR-0026: Mehrere Basisstationen gleichzeitig bedienen
+# ADR-0026: Serve several base stations at once
 
 - Status: Accepted
-- Datum: 2026-11-22
+- Date: 2026-11-22
 - Partially superseded: [ADR-0027](0027-live-wall-layout.md)
 
-## Kontext
+## Context
 
-Bisher hielt das Dashboard genau einen Workspace. Wurden die Kameras einer zweiten
-Basisstation geladen, ersetzte deren Ansicht die erste. Wer zwei Hubs besitzt, konnte
-damit nie beide gleichzeitig sehen, obwohl der Streammanager schon länger einen Stream
-pro DID und Kanal zulässt (ADR-0011) und die API keine Obergrenze über DIDs hinweg
-kennt. Der Wunsch ist, die Streams aller geladenen Basisstationen parallel abzuspielen.
+Until then the dashboard held exactly one workspace. Loading the cameras of a
+second base station replaced the first view. Anyone with two hubs could never see
+both at once, even though the stream manager had long allowed one stream per DID
+and channel (ADR-0011) and the API has no limit across DIDs. The goal is to play
+the streams of all loaded base stations in parallel.
 
-## Entscheidung
+## Decision
 
-- Jede geladene Basisstation erhält einen eigenen Workspace (`.workspace[data-hub-key]`)
-  unterhalb von `#workspaces-section`. Das Laden einer weiteren Station ersetzt keinen
-  bestehenden Workspace mehr; die Abschnitte bleiben untereinander sichtbar.
-- Der Workspace-Kopf nennt die Basisstation (Modell · DID) und die Anzahl ihrer Kameras.
-  Die Aktionen „Alle starten“/„Alle beenden“ bleiben pro Basisstation erhalten.
-- Zusätzlich gibt es im Schritt-2-Kopf die globalen Aktionen „Alle Basisstationen
-  starten“ und „Alle Basisstationen beenden“. Sie starten bzw. beenden alle Kanäle
-  aller geladenen Hubs.
-- Inventar- und Bewegungsaktionen sind gesperrt, solange **irgendein** Stream läuft –
-  passend zur API, die bei aktiven Streams `409 conflict` liefert. Nach dem Stoppen
-  werden Laden und Discovery wieder freigegeben.
-- Sicherheitscodes bleiben je DID im Browser-RAM (ADR-0025). Die globalen Aktionen
-  fragen fehlende Codes nacheinander ab (Single-Flight pro DID, ein Dialog zur Zeit).
-- Sprachwechsel aktualisiert beide Workspaces in place, ohne Streams zu unterbrechen;
-  Karten ohne Gerätenamen nutzen übersetzbare Fallback-Schlüssel.
+- Each loaded base station gets its own workspace (`.workspace[data-hub-key]`)
+  below `#workspaces-section`. Loading another station no longer replaces an
+  existing workspace; the sections stay visible below each other.
+- The workspace header names the base station (model · DID) and its camera count.
+  The "Start all"/"Stop all" actions stay per base station.
+- The step 2 header also gets the global actions "Start all base stations" and
+  "Stop all base stations". They start and stop every channel of every loaded hub.
+- Inventory and motion actions are locked while **any** stream runs, matching the
+  API, which returns `409 conflict` for active streams. After stopping, loading and
+  discovery are available again.
+- Security codes stay per DID in browser RAM (ADR-0025). The global actions ask for
+  missing codes one after another (single flight per DID, one dialog at a time).
+- A language switch updates both workspaces in place without interrupting streams;
+  tiles without a device name use translatable fallback keys.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Reiter/Tabs pro Hub:** würde wieder exklusiv umschalten und widerspricht dem Ziel,
-  alle Streams gleichzeitig zu sehen.
-- **Eine gemeinsame Kamerawand ohne Hub-Gruppierung:** verliert die Zuordnung
-  Kamera → Basisstation und damit die eindeutige Zuordnung von Code und Stream-ID.
-- **Nur globale Aktionen:** verhindert, dass ein einzelner Hub gezielt gestartet wird.
+- **Tabs per hub:** would switch exclusively again and contradicts the goal of
+  seeing all streams at once.
+- **One shared camera wall without hub grouping:** loses the camera-to-base-station
+  mapping and with it the unambiguous assignment of code and stream ID.
+- **Global actions only:** prevents starting a single hub on purpose.
 
-## Konsequenzen
+## Consequences
 
-- `web/index.html`: statischer `#workspace`-Block ersetzt durch `#workspaces-section`
-  (durch ADR-0027 weiter zur gemeinsamen Wand abgelöst)
-  mit globalen Aktionen und `#workspaces`-Container.
-- `web/app.js`: Workspace pro Hub, globale Start-/Stopp-Funktionen, Inventarsperre über
-  alle Hubs, Prompt-Kette für mehrere Hubs, Fallback-Titel über i18n.
-- `web/style.css`: Abstände und Scroll-Offset für gestapelte Workspaces.
-- `web/locales/{en,de}.json`: `workspace.startAllHubs`, `workspace.stopAllHubs`,
-  `notice.channelsLoaded` nennt den Hub.
-- Tests: neue Playwright-Suite `workspaces.spec.ts` (zwei Hubs, Start/Stopp aller,
-  Inventarsperre); Credentials- und Branding-Suite an die neue Struktur angepasst.
-- Keine API-, OpenAPI- oder SBOM-Änderung: die API arbeitet bereits pro DID.
+- `web/index.html`: the static `#workspace` block is replaced by
+  `#workspaces-section` (later replaced by the shared wall in ADR-0027) with global
+  actions and the `#workspaces` container.
+- `web/app.js`: workspace per hub, global start and stop functions, inventory lock
+  across all hubs, prompt chain for several hubs, fallback titles through i18n.
+- `web/style.css`: spacing and scroll offset for stacked workspaces.
+- `web/locales/{en,de}.json`: `workspace.startAllHubs`,
+  `workspace.stopAllHubs`, `notice.channelsLoaded` names the hub.
+- Tests: new Playwright suite `workspaces.spec.ts` (two hubs, start and stop all,
+  inventory lock); credentials and branding suites adjusted to the new structure.
+- No API, OpenAPI or SBOM change: the API already works per DID.
 
-## Nachtrag 2026-11-23
+## Addendum 2026-11-23
 
-ADR-0027 ersetzt die Workspace-Sektionen durch eine gemeinsame Live-Wand. Jeder
-geladene Hub erscheint als Filterchip und im Hub-Manager, nicht mehr als eigener
-`.workspace`-Abschnitt. Die Invarianten dieses ADR bleiben gültig:
+ADR-0027 replaces the workspace sections with a shared live wall. Each loaded hub
+appears as a filter chip and in the hub manager, no longer as its own
+`.workspace` section. The invariants of this ADR stay valid:
 
-- alle geladenen Hubs können gleichzeitig streamen,
-- beim Laden eines weiteren Hubs wird kein bestehender Stream ersetzt,
-- globale Aktionen starten/beenden alle Hubs, jeder Hub bleibt einzeln steuerbar,
-- Inventar- und Bewegungsaktionen sind während aktiver Streams gesperrt,
-- Codes bleiben je DID im Browser-RAM.
+- all loaded hubs can stream at the same time,
+- loading another hub does not replace an existing stream,
+- global actions start and stop all hubs, and each hub stays individually
+  controllable,
+- inventory and motion actions are locked while streams run,
+- codes stay per DID in browser RAM.
 
-Die konkrete Wand-, Popover- und Mobile-Umsetzung steht in ADR-0027.
+The concrete wall, popover and mobile implementation is in ADR-0027.
 
-## Verweise
+## References
 
-- ADR-0011: ein Stream pro DID und Kanal
-- ADR-0025: Sicherheitscode je Basisstation
+- ADR-0011: one stream per DID and channel
+- ADR-0025: security code per base station
 - `specs/product.md`, `specs/architecture.md`, `specs/testing.md`

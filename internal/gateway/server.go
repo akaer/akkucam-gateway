@@ -425,7 +425,7 @@ func RequestLogger(next http.Handler) http.Handler {
 		started := time.Now()
 		next.ServeHTTP(w, r)
 		host, _, _ := net.SplitHostPort(r.RemoteAddr)
-		//nolint:gosec // G706: Pfad mit %q maskiert, Host aus SplitHostPort; log interpretiert keine Escapes (ADR-0033)
+		//nolint:gosec // G706: path masked with %q, host from SplitHostPort; log interprets no escapes (ADR-0033)
 		log.Printf("%s %q from=%s duration=%s", r.Method, r.URL.Path, host, time.Since(started).Round(time.Millisecond))
 	})
 }

@@ -1,75 +1,124 @@
 # Roadmap
 
-## Nächste sinnvolle Schritte
+## Next sensible steps
 
-### Robustheit
+### Robustness
 
-- Session-Reconnect nach Funkabbruch
-- Statusgrund und letzter Fehler über API ausgeben
-- HLS-Startup und Kamera-Wake-up getrennt messen
-- Paketverlusttests ergänzen
-- Graceful Shutdown bei SIGTERM
+- session reconnect after a radio drop
+- expose status reason and last error over the API
+- measure HLS startup and camera wake-up separately
+- add packet loss tests
+- graceful shutdown on SIGTERM
 
-### Sicherheit
+### Security
 
-- optionale HTTP-Authentifizierung
-- dokumentiertes Reverse-Proxy-Beispiel für TLS
-- Request-Größenlimits und explizite Timeouts für Body/Response
-- Container-Image-Scan mit Trivy auf dem gebauten Image, ergänzend zur SBOM (Phase 2 aus ADR-0033)
+- optional HTTP authentication
+- documented reverse proxy example for TLS
+- request size limits and explicit timeouts for body and response
+- container image scan with Trivy on the built image, complementing the SBOM
+  (phase 2 from ADR-0033)
 
-### Bedienung
+### Usability
 
-- hochauflösende Standbilder bzw. ein Snapshot-Endpunkt (der Fokus-Streifen nutzt jetzt Live-Miniaturen aus den Videostreams)
-- Zugriff auf die von der Basisstation erzeugten Aufzeichnungen (Bewegungserkennung aktiv, SD-Karte vorhanden)
-- besserer Fehlerstatus bei leerem/abgeschaltetem Kanal
-- weitere Sprachen über zusätzliche Kataloge in `web/locales/` (ADR-0021)
+- high-resolution stills or a snapshot endpoint (the focus strip now uses live
+  thumbnails from the video streams)
+- access to recordings the base station produces (motion detection active, SD card
+  present)
+- better error status for an empty or disabled channel
+- more languages through additional catalogs in `web/locales/` (ADR-0021)
 
-### Medien
+### Media
 
-- WebRTC als optionale Niedriglatenz-Alternative zu HLS
-- RTSP-Ausgabe für Home Assistant, go2rtc oder NVRs
-- SPS/PPS- und Auflösungsanzeige im Status
+- WebRTC as an optional low-latency alternative to HLS
+- RTSP output for Home Assistant, go2rtc or NVRs
+- SPS/PPS and resolution display in the status
 
-### Geräteunterstützung
+### Device support
 
-- weitere Firmwarestände testen
-- Verhalten der zweiten gefundenen Gerätefamilie (`WGAG`) getrennt untersuchen
-- Kamera- und Hub-Fähigkeiten dynamisch abfragen
+- test more firmware versions
+- investigate the behavior of the second device family found (`WGAG`) separately
+- query camera and hub capabilities dynamically
 
-### Integrationen
+### Integrations
 
-- **HomeKit (Apple Home) über Home Assistant oder Homebridge.** Kein nativer HAP-Support im Gateway. Voraussetzung ist die RTSP-Ausgabe; ein Standbild kann aus dem RTSP-Stream erzeugt werden. Details siehe [HomeKit (Apple Home)](#homekit-apple-home).
+- **HomeKit (Apple Home) through Home Assistant or Homebridge.** No native HAP
+  support in the gateway. RTSP output is a prerequisite; a still image can be
+  generated from the RTSP stream. Details in
+  [HomeKit (Apple Home)](#homekit-apple-home).
 
 ## HomeKit (Apple Home)
 
-Geprüft, nicht umgesetzt. Der Gateway bleibt HomeKit-frei; die Einbindung erfolgt über eine Brücke. Empfohlen sind die Home-Assistant-HomeKit-Bridge oder Homebridge mit `camera-ffmpeg`. Kameras laufen im Accessory-Mode, ein Accessoire pro Kanal. Ein eigener Snapshot-Endpunkt ist optional, weil beide Brücken ein Frame aus dem RTSP-Stream ziehen können.
+Reviewed, not implemented. The gateway stays HomeKit-free; integration goes through
+a bridge. The Home Assistant HomeKit bridge or Homebridge with `camera-ffmpeg` are
+recommended. Cameras run in accessory mode, one accessory per channel. A dedicated
+snapshot endpoint is optional because both bridges can pull a frame from the RTSP
+stream.
 
-**Nicht-Ziele:** HomeKit Secure Video, iCloud-Aufnahmen, Zwei-Wege-Audio/Gegensprechen, MFi-Zertifizierung und „Works with Apple Home“-Badge, nativer HAP-Support im Gateway.
+**Non-goals:** HomeKit Secure Video, iCloud recordings, two-way audio or intercom,
+MFi certification and the "Works with Apple Home" badge, native HAP support in the
+gateway.
 
-**Grenzen:** H.264-Passthrough ist möglich, muss aber mit echter Hardware geprüft werden. Bewegungs-Benachrichtigungen setzen eine echte Ereignisquelle voraus; der Gateway kennt derzeit nur den Ein-/Aus-Zustand der Bewegungserkennung. Aufzeichnungen bleiben auf der Basisstation-SD und erscheinen nicht in Apple Home.
+**Limits:** H.264 passthrough is possible but must be tested with real hardware.
+Motion notifications need a real event source; the gateway currently knows only the
+on/off state of motion detection. Recordings stay on the base station SD card and do
+not appear in Apple Home.
 
-### User Stories
+### User stories
 
-- **US-HK-01 – Kamera im Apple Home sehen:** Als Apple-Home-Nutzer mit Home Assistant möchte ich jede Gateway-Kamera als eigenes Accessoire sehen, damit ich sie im Home-App live öffnen kann. *Akzeptanz:* pro Kanal ein Accessoire; Live-View startet; H.264 möglichst ohne Transcoding; Kachel zeigt ein Standbild.
-- **US-HK-02 – Zwei Kanäle getrennt:** Als Nutzer mit zwei gekoppelten Kameras möchte ich beide Kanäle als getrennte Accessoires, damit ich sie unabhängig öffnen kann. *Akzeptanz:* zwei Accessoires; parallele Streams; keine gegenseitige Blockade.
-- **US-HK-03 – Standbild in der Kachel:** Als Nutzer möchte ich ein aktuelles Standbild sehen, damit die Kachel nicht schwarz bleibt. *Akzeptanz:* Snapshot aus RTSP oder eigenem Endpunkt; JPEG; Aktualisierung im von Apple vorgegebenen Rhythmus.
-- **US-HK-04 – Siri und Szenen:** Als Nutzer möchte ich die Kamera per Siri oder Home-Szene öffnen. *Akzeptanz:* Accessoire ist in Szenen wählbar; Siri-Aufruf funktioniert, soweit Apple das unterstützt.
-- **US-HK-05 – Kopplung überlebt Neustarts:** Als Nutzer möchte ich nach einem Gateway-Neustart nicht neu koppeln. *Akzeptanz:* Pairing-Daten liegen bei HA/Homebridge; Gateway-Neustart erfordert kein Re-Pairing.
-- **US-HK-06 – Kein Audio, kein Audiochaos:** Als Nutzer möchte ich in HomeKit bewusst kein Audio, damit bei mehreren Streams kein Audiochaos entsteht. *Akzeptanz:* `support_audio: false` bzw. `audio: false`; keine Audio-Steuerelemente; ADR-0020 bleibt gültig.
-- **US-HK-07 – Datenschutz bleibt lokal:** Als datenschutzorientierter Nutzer möchte ich, dass die Einbindung lokal bleibt und keine Cloud-Aufnahmen entstehen. *Akzeptanz:* HKSV deaktiviert; keine iCloud-Aufnahmen; Dokumentation weist darauf hin.
-- **US-HK-08 – Aufzeichnungen klar abgegrenzt:** Als Nutzer möchte ich verstehen, dass Aufnahmen auf der Basisstation-SD liegen und nicht in Apple Home. *Akzeptanz:* Doku und Feature-Status; HomeKit zeigt keine Aufnahmen; Zugriff auf SD-Aufzeichnungen bleibt separater Roadmap-Punkt.
-- **US-HK-09 – Homebridge-Vorlage:** Als Homebridge-Nutzer möchte ich eine fertige Config-Vorlage, damit ich die Kamera in wenigen Minuten einbinde. *Akzeptanz:* Dokumentation mit RTSP-URL, optional Snapshot-URL, `audio: false`, `vcodec: copy`, `maxStreams`.
-- **US-HK-10 – Home-Assistant-Anleitung:** Als Home-Assistant-Nutzer möchte ich eine Anleitung für die HomeKit-Bridge im Accessory-Mode. *Akzeptanz:* Dokumentation mit `mode: accessory`, `support_audio: false`, `video_codec: copy`, `stream_count`, ein Accessoire pro Kamera.
-- **US-HK-11 – Optionale Integration:** Als Nutzer ohne Apple-Umgebung möchte ich, dass der Gateway unverändert weiterläuft. *Akzeptanz:* keine neue Pflichtabhängigkeit im Container; Healthcheck unverändert; HomeKit-Doku separat.
-- **US-HK-12 – Bewegungs-Benachrichtigungen (optional):** Als Nutzer möchte ich optional Bewegungs-Benachrichtigungen in Apple Home. *Akzeptanz:* nur anbieten, wenn eine echte Ereignisquelle existiert; `linked_motion_sensor` (HA) oder Motion-Accessoire (Homebridge); sonst ausdrücklich nicht zusagen.
-- **US-HK-13 – Kopplung ohne HA/Homebridge (später):** Als Nutzer ohne Home Assistant oder Homebridge möchte ich die Kamera direkt mit Apple Home koppeln. *Akzeptanz:* HAP-Pairing, mDNS, SRTP, RTP, Snapshot; umfassende Tests; rechtliche Klärung.
-- **US-HK-14 – Pairing sicher speichern (später):** Als Nutzer möchte ich, dass die HomeKit-Kopplung Neustarts überlebt, ohne dass Zugangsdaten in Logs landen. *Akzeptanz:* Pairing-Daten persistent und geschützt; kein Secret im Log; eigenes ADR.
+- **US-HK-01: See the camera in Apple Home.** As an Apple Home user with Home
+  Assistant, I want each gateway camera as its own accessory so I can open it live in
+  the Home app. *Acceptance:* one accessory per channel; live view starts; H.264
+  without transcoding where possible; the tile shows a still image.
+- **US-HK-02: Two channels separately.** As a user with two coupled cameras, I want
+  both channels as separate accessories so I can open them independently.
+  *Acceptance:* two accessories; parallel streams; no mutual blocking.
+- **US-HK-03: Still image in the tile.** As a user, I want a current still image so
+  the tile does not stay black. *Acceptance:* snapshot from RTSP or a dedicated
+  endpoint; JPEG; refresh at the rhythm Apple prescribes.
+- **US-HK-04: Siri and scenes.** As a user, I want to open the camera through Siri or
+  a Home scene. *Acceptance:* the accessory is selectable in scenes; the Siri call
+  works as far as Apple supports it.
+- **US-HK-05: Pairing survives restarts.** As a user, I do not want to pair again
+  after a gateway restart. *Acceptance:* pairing data lives in HA or Homebridge; a
+  gateway restart needs no re-pairing.
+- **US-HK-06: No audio, no audio chaos.** As a user, I deliberately want no audio in
+  HomeKit so several streams do not create audio chaos. *Acceptance:*
+  `support_audio: false` or `audio: false`; no audio controls; ADR-0020 stays valid.
+- **US-HK-07: Privacy stays local.** As a privacy-minded user, I want the integration
+  to stay local and produce no cloud recordings. *Acceptance:* HKSV disabled; no
+  iCloud recordings; the documentation says so.
+- **US-HK-08: Recordings clearly separated.** As a user, I want to understand that
+  recordings sit on the base station SD card and not in Apple Home. *Acceptance:*
+  docs and feature status; HomeKit shows no recordings; access to SD recordings stays
+  a separate roadmap item.
+- **US-HK-09: Homebridge template.** As a Homebridge user, I want a ready-made config
+  template so I can add the camera in a few minutes. *Acceptance:* documentation with
+  RTSP URL, optional snapshot URL, `audio: false`, `vcodec: copy`, `maxStreams`.
+- **US-HK-10: Home Assistant guide.** As a Home Assistant user, I want a guide for the
+  HomeKit bridge in accessory mode. *Acceptance:* documentation with `mode:
+  accessory`, `support_audio: false`, `video_codec: copy`, `stream_count`, one
+  accessory per camera.
+- **US-HK-11: Optional integration.** As a user without an Apple environment, I want
+  the gateway to keep running unchanged. *Acceptance:* no new mandatory dependency in
+  the container; health check unchanged; HomeKit docs separate.
+- **US-HK-12: Motion notifications (optional).** As a user, I want optional motion
+  notifications in Apple Home. *Acceptance:* offer them only when a real event source
+  exists; `linked_motion_sensor` (HA) or a motion accessory (Homebridge); otherwise do
+  not promise them.
+- **US-HK-13: Pairing without HA or Homebridge (later).** As a user without Home
+  Assistant or Homebridge, I want to pair the camera directly with Apple Home.
+  *Acceptance:* HAP pairing, mDNS, SRTP, RTP, snapshot; extensive tests; legal
+  clarification.
+- **US-HK-14: Store pairing securely (later).** As a user, I want the HomeKit pairing
+  to survive restarts without credentials reaching logs. *Acceptance:* pairing data
+  persistent and protected; no secret in the log; its own ADR.
 
-## Bewusst zurückgestellt
+## Deliberately deferred
 
-- Internet-Relay und Fernzugriff
-- Firmwareupdates über den Gateway
-- Admin-Einstellungen und Passwortänderungen
-- Cloud-Push-Nachrichten
+- internet relay and remote access
+- firmware updates through the gateway
+- admin settings and password changes
+- cloud push messages
 
-Diese Funktionen erweitern Angriffsfläche und Scope erheblich und benötigen jeweils einen eigenen Änderungsvorschlag beziehungsweise ADR.
+These features expand the attack surface and scope considerably and each needs its
+own change proposal or ADR.

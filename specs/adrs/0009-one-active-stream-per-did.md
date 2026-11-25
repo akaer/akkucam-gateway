@@ -1,29 +1,35 @@
-# ADR-0009: Ein aktiver Stream pro Basisstations-DID
+# ADR-0009: One active stream per base station DID
 
 - Status: Superseded by [ADR-0011](0011-concurrent-stream-per-channel.md)
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Eine Basisstation kann mehrere Kamerakanäle haben. Parallele Sessions erhöhen Funk-, Akku- und Protokollbelastung. Der aktuelle Hauptanwendungsfall ist ein Browserplayer mit Kanalumschaltung.
+A base station can have several camera channels. Parallel sessions increase
+radio, battery and protocol load. The main use case was a browser player with
+channel switching.
 
-## Entscheidung
+## Decision
 
-Der Streammanager erlaubt genau einen aktiven Stream pro DID. Ein neuer Start stoppt und ersetzt den vorhandenen Stream. Der gewählte Kameraindex bestimmt Kanal 1 oder 2.
+The stream manager allows exactly one active stream per DID. A new start stops
+and replaces the existing stream. The selected camera index determines channel 1
+or 2.
 
-## Begründung
+## Reasoning
 
-- verhindert verwaiste FFmpeg- und PPCS-Prozesse
-- entspricht dem aktuellen UI-Modell
-- reduziert Last auf Basisstation und Akku-Kameras
-- eindeutige HLS-URL pro DID
+- Prevents orphaned FFmpeg and PPCS processes
+- Matches the UI model at the time
+- Reduces load on the base station and the battery cameras
+- One unambiguous HLS URL per DID
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- paralleler Stream pro DID und Kanal: sinnvoll für NVR/Quad-View, derzeit nicht benötigt.
-- Kanalwechsel in bestehender Session: geringere Umschaltzeit, erfordert aber zusätzliche Stop/Change-Zustandslogik.
+- **Parallel stream per DID and channel:** useful for NVR or quad view, not
+  needed at the time.
+- **Channel switch within an existing session:** shorter switch time, but needs
+  extra stop/change state logic.
 
-## Konsequenzen
+## Consequences
 
-- Kanalwechsel baut die Session neu auf und fragt den Sicherheitscode erneut ab.
-- gleichzeitige Anzeige beider Kameras ist aktuell nicht möglich.
+- A channel switch rebuilds the session and asks for the security code again.
+- Showing both cameras at once was not possible at the time.

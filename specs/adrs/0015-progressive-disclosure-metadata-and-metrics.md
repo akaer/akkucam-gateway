@@ -1,63 +1,72 @@
-# ADR-0015: Metadaten und Live-Metriken standardmäßig zuklappbar
+# ADR-0015: Metadata and live metrics collapsed by default
 
 - Status: Partially superseded (ADR-0031)
-- Datum: 2026-11-21
-- Geändert: 2026-11-23 (Nachtrag, ADR-0027)
+- Date: 2026-11-21
+- Changed: 2026-11-23 (addendum, ADR-0027)
 
-## Kontext
+## Context
 
-Das Dashboard soll auf mobilen Geräten und großen Displays schnell erfassbar sein. Permanentes Anzeigen von Geräte- und Protokolldetails (Firmware, MCU, MAC, Live-Metriken) erzeugt visuelles Rauschen und lenkt vom Hauptzweck ab: Streams starten/stoppen und Livevideo sehen.
+The dashboard should be quick to grasp on mobile devices and large displays.
+Permanently showing device and protocol details (firmware, MCU, MAC, live
+metrics) creates visual noise and distracts from the main purpose: start and
+stop streams and watch live video.
 
-Gleichzeitig sollen die technischen Informationen weiterhin verfügbar bleiben, ohne versteckt zu sein.
+At the same time, the technical information should stay available without being
+hidden.
 
-## Entscheidung
+## Decision
 
-- Hub- und Kamera-Metadaten werden als `details/summary` umgesetzt.
-- Standardzustand ist **zugeklappt**.
-- Ein klarer Indikator (Chevron) signalisiert die Klickbarkeit.
-- Live-Metriken (z. B. Bitrate, Akku, Laufzeit) werden nur innerhalb dieses Bereichs angezeigt.
-- Live-Metriken werden nur gerendert/aktualisiert, wenn der Bereich aufgeklappt ist.
+- Hub and camera metadata use `details/summary`.
+- The default state is **collapsed**.
+- A clear indicator (chevron) signals that the element is clickable.
+- Live metrics (for example bitrate, battery, uptime) appear only inside this
+  area.
+- Live metrics are rendered and updated only while the area is open.
 
-## Begründung
+## Reasoning
 
-- bessere Lesbarkeit im Standardfall
-- progressive disclosure: Details nur bei Bedarf
-- reduziert Layoutsprünge und „Datenflimmern“ durch Statuspolling
-- passt zum bestehenden Diagnose-Pattern
+- Better readability in the default case
+- Progressive disclosure: details only on demand
+- Fewer layout shifts and less "data flicker" from status polling
+- Matches the existing diagnostics pattern
 
-## Konsequenzen
+## Consequences
 
-- Nutzer sehen Live-Metriken erst nach dem Aufklappen.
-- Der Gateway bleibt ADR-0014-konform: Es werden nur konkrete Werte angezeigt; fehlende Werte ergeben keine Platzhalterzeilen.
+- Users see live metrics only after opening the area.
+- The gateway stays ADR-0014-compliant: only concrete values appear; missing
+  values produce no placeholder rows.
 
-## Nachtrag 2026-11-23
+## Addendum 2026-11-23
 
-Die Live-Wand (ADR-0027) behält die progressive Offenlegung bei. Live-Metriken
-bleiben standardmäßig geschlossen und sind über den Details-Drawer sowie ein
-explizites „Live-Daten“-Popover erreichbar. Das Popover enthält nur vorhandene
-Werte; es bleibt bis zum Öffnen unsichtbar und verändert die Kachelhöhe nicht.
+The live wall (ADR-0027) keeps progressive disclosure. Live metrics stay closed
+by default and are reachable through the details drawer and an explicit
+"Live data" popover. The popover contains only available values; it stays
+invisible until opened and does not change the tile height.
 
-## Verweise
+## References
 
-- ADR-0014: Nur tatsächlich verfügbare Metadaten anzeigen
-- ADR-0013: responsives Dashboard und Theme
+- ADR-0014: Render only metadata that is actually available
+- ADR-0013: Responsive dashboard and theme
 
-## Präzisierung 2026-11-24
+## Clarification 2026-11-24
 
-Die Aussage „Live-Metriken werden nur gerendert/aktualisiert, wenn der Bereich aufgeklappt ist“ betrifft die Darstellung. Der Client fragt `/api/live/status` weiterhin sekündlich für jeden laufenden Stream ab, um Stream-Ende und Metriken zu erkennen; aktualisiert werden aber nur ein geöffneter Drawer und ein geöffnetes Popover (`updateStreamStatus` in `web/app.js`).
+The statement "live metrics are rendered and updated only while the area is
+open" concerns the display. The client still polls `/api/live/status` once per
+second for every running stream to detect stream end and metrics; only an open
+drawer and an open popover update (`updateStreamStatus` in `web/app.js`).
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Für die Live-Wand gilt die progressive Offenlegung der Live-Metriken nicht
-mehr: Laufende Streams zeigen Bitrate, FPS und Akku dauerhaft als Overlay auf
-der Kachel (ADR-0031). Der Details-Drawer bleibt der ausführliche Weg und
-zeigt zusätzlich die Laufzeit. Auf Wunsch lässt sich das Overlay in den
-Wand-Einstellungen abschalten; dann gilt wieder der ursprüngliche Zustand.
+Progressive disclosure of live metrics no longer applies to the live wall:
+running streams show bitrate, FPS and battery permanently as an overlay on the
+tile (ADR-0031). The details drawer remains the detailed path and also shows
+uptime. The overlay can be turned off in the wall settings; the original state
+then applies again.
 
-## Nachtrag 2026-11-24 (Setup-Seite)
+## Addendum 2026-11-24 (setup page)
 
-Auf der Setup-Seite stehen die Metadaten einer geladenen Basisstation sofort
-offen; das `details/summary` entfällt. Das Kartenraster zeigt nur, was nicht
-schon im Kartenkopf steht (Firmware, MCU, MAC, SD-Werte); DID, IP und Modell
-bleiben im Kopf. Nur die Diagnose bleibt weiterhin zuklappbar. Der Drawer
-bleibt der progressive Weg für Kameradaten.
+On the setup page the metadata of a loaded base station is open immediately; the
+`details/summary` element is gone. The tile grid shows only what the tile header
+does not already say (firmware, MCU, MAC, SD values); DID, IP and model stay in
+the header. Only diagnostics remains collapsible. The drawer remains the
+progressive path for camera data.

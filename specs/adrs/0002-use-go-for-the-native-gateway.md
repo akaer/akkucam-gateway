@@ -1,40 +1,49 @@
-# ADR-0002: Go für den nativen Gateway
+# ADR-0002: Go for the native gateway
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Der Gateway benötigt UDP-Broadcasts, eine binäre Protokollzustandsmaschine, HTTP-API, Nebenläufigkeit und Prozesssteuerung für FFmpeg. Der Host läuft auf NixOS/x86-64; der Gateway soll als Dockercontainer portabel bleiben.
+The gateway needs UDP broadcasts, a binary protocol state machine, an HTTP API,
+concurrency and process control for FFmpeg. The host runs NixOS/x86-64, and the
+gateway should stay portable as a Docker container.
 
-## Entscheidung
+## Decision
 
-Der Gateway wird in Go implementiert. Er wird als statisches Linux-Binary in einer Multi-Stage-Docker-Buildstage erzeugt.
+The gateway is implemented in Go. A multi-stage Docker build produces a static
+Linux binary.
 
-## Begründung
+## Reasoning
 
-- Standardbibliothek deckt UDP, HTTP, AES und Prozesssteuerung ab.
-- Goroutines passen zu Discovery, Sessionloop, Bitratenmessung und FFmpeg-Lifecycle.
-- Statisches Binary vereinfacht das Runtime-Image.
-- Die Datenrate von ein bis zwei Kamerastreams erfordert keine komplexere Optimierung.
-- Schnelle Iteration ist beim Reverse Engineering wichtiger als maximale Low-Level-Kontrolle.
+- The standard library covers UDP, HTTP, AES and process control.
+- Goroutines fit discovery, the session loop, bitrate measurement and the
+  FFmpeg lifecycle.
+- A static binary keeps the runtime image small.
+- One or two camera streams do not need heavier optimization.
+- Fast iteration matters more during reverse engineering than maximum
+  low-level control.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
 ### Rust
 
-Vorteile bei speichersicherem Binärparsing und Zero-Copy. Zurückgestellt, weil der Engpass das Protokollverständnis und nicht CPU oder Speicher ist. Eine spätere isolierte Portierung von `internal/ppcs` bleibt möglich.
+Rust offers memory-safe binary parsing and zero-copy. Deferred because the
+bottleneck is protocol understanding, not CPU or memory. An isolated port of
+`internal/ppcs` later remains possible.
 
 ### Python/Node.js
 
-Schnell für Prototypen, aber weniger attraktiv für einen kompakten langlebigen Netzwerkdaemon und ein minimales Runtime-Image.
+Fast for prototypes, but less attractive for a compact, long-running network
+daemon and a minimal runtime image.
 
-### Fremdbibliothek als Bridge
+### Vendor library as a bridge
 
-Hätte eine proprietäre Herstellerbibliothek wiederverwendet, benötigt aber ARM-Emulation, mehr Privilegien und bringt Verteilungs- sowie Lizenzrisiken.
+Would reuse a proprietary vendor library, but needs ARM emulation, more
+privileges and carries distribution and license risks.
 
-## Konsequenzen
+## Consequences
 
-- Host benötigt kein lokal installiertes Go.
-- Go-Version und Build werden im Dockerfile festgelegt.
-- Binärparser müssen weiterhin defensiv implementiert und getestet werden.
+- The host needs no locally installed Go.
+- The Dockerfile fixes the Go version and the build.
+- Binary parsers still need defensive implementation and tests.

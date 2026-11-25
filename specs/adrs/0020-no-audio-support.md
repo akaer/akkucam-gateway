@@ -1,44 +1,62 @@
-# ADR-0020: Kein Audio-Support
+# ADR-0020: No audio support
 
 - Status: Accepted
-- Datum: 2026-11-22
+- Date: 2026-11-22
 
-## Kontext
+## Context
 
-Audioempfang wäre technisch möglich. Die verifizierte Sitzungssequenz sendet `StartVideo` und `StartAudio`; der Hub kann danach neben Videodaten auch Audiodaten liefern. Gleichzeitig zeigt das Dashboard mehrere gekoppelte Kameras parallel. Bei mehreren gleichzeitig laufenden Streams ist nicht mehr erkennbar, zu welcher Kamera ein Audiostrom gehört. Audio wird damit zum Chaos statt zur Information. Ein Gegensprech-Feature ist nicht geplant. Browser-Autoplay-Regeln und zusätzliche Bandbreite/CPU sprechen ebenfalls gegen Audio.
+Audio reception would be technically possible. The verified session sequence
+sends `StartVideo` and `StartAudio`; the hub can then deliver audio data next to
+video data. At the same time the dashboard shows several coupled cameras in
+parallel. With several streams running at once, a listener can no longer tell
+which camera an audio stream belongs to. Audio becomes chaos instead of
+information. Intercom is not planned. Browser autoplay rules and extra bandwidth
+and CPU also argue against audio.
 
-## Entscheidung
+## Decision
 
-- Der Gateway unterstützt **kein Audio**: keinen Audioempfang, keine Browser-Audioausgabe und kein Gegensprechen.
-- Eingehende Audiodaten werden verworfen. Es gibt keine Audio-Steuerelemente in der Oberfläche.
-- `StartAudio` bleibt vorerst Teil des Sitzungsaufbaus, weil die verifizierte Sequenz `StartVideo` + `StartAudio` umfasst. Der Befehl dient ausschließlich der Protokollkompatibilität und nicht der Audiofunktion. Ob `StartVideo` allein genügt, ist eine spätere Hardwareprüfung.
+- The gateway supports **no audio**: no audio reception, no browser audio output
+  and no intercom.
+- Incoming audio data is discarded. There are no audio controls in the interface.
+- `StartAudio` stays part of the session setup for now because the verified
+  sequence includes `StartVideo` + `StartAudio`. The command serves protocol
+  compatibility only, not audio. Whether `StartVideo` alone is enough is a later
+  hardware check.
 
-## Begründung
+## Reasoning
 
-- Bei mehreren parallelen Streams ist Audio keiner Kamera eindeutig zuzuordnen. Die Wiedergabe wäre für Nutzer verwirrend.
-- Livevideo ist der Produktzweck; Audio liefert für dieses Szenario keinen Mehrwert.
-- Audio erhöht Bandbreite, CPU-Last und Komplexität in der Oberfläche.
-- Ein konsistenter Audio-Support nur für einen einzelnen Stream wäre eine Sonderregel ohne klaren Nutzen.
+- With several parallel streams, audio cannot be assigned clearly to one camera.
+  Playback would confuse users.
+- Live video is the product purpose; audio adds no value for this scenario.
+- Audio increases bandwidth, CPU load and interface complexity.
+- Consistent audio support for a single stream only would be a special rule
+  without a clear benefit.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Vollständiger Audio-Support:** verworfen, weil mehrere Streams Audiochaos erzeugen.
-- **Audio nur bei genau einem aktiven Stream:** verworfen, weil das Verhalten je nach Anzahl der Streams springt und schwer erklärbar ist.
-- **Gegensprechen:** verworfen, nicht Teil des Produktumfangs.
-- **WebRTC-Audio:** verworfen, zusätzliche Signalisierung ohne Produktnutzen.
+- **Full audio support:** rejected because several streams create audio chaos.
+- **Audio only with exactly one active stream:** rejected because the behavior
+  jumps with the number of streams and is hard to explain.
+- **Intercom:** rejected, outside the product scope.
+- **WebRTC audio:** rejected, extra signaling without product value.
 
-## Konsequenzen
+## Consequences
 
-- Audio verschwindet aus der Roadmap.
-- `specs/product.md` führt Audioempfang, Audioausgabe und Gegensprechen als Nicht-Ziele.
-- `specs/protocol.md` dokumentiert weiterhin `StartAudio`, weist aber auf die fehlende Auswertung hin.
-- Die Tests bleiben unverändert; der Fake-Hub erwartet `StartAudio` weiterhin.
-- Aufzeichnungen sind nicht Teil des Gateways. Die Basisstation zeichnet selbst auf, sofern für den Kanal die Bewegungserkennung aktiv und eine SD-Karte vorhanden ist. Ein Zugriff auf diese Aufzeichnungen ist als Roadmap-Punkt vorgesehen.
+- Audio disappears from the roadmap.
+- `specs/product.md` lists audio reception, audio output and intercom as
+  non-goals.
+- `specs/protocol.md` still documents `StartAudio` but notes that the gateway
+  does not evaluate it.
+- The tests stay unchanged; the fake hub still expects `StartAudio`.
+- Recordings are not part of the gateway. The base station records on its own
+  when motion detection is active for the channel and an SD card is present.
+  Access to those recordings is a roadmap item.
 
-## Verweise
+## References
 
-- [ADR-0006](0006-h264-passthrough-and-hls.md): H.264-Passthrough und HLS
-- [ADR-0011](0011-concurrent-stream-per-channel.md): paralleler Stream pro DID und Kanal
+- [ADR-0006](0006-h264-passthrough-and-hls.md): H.264 passthrough and HLS
+- [ADR-0011](0011-concurrent-stream-per-channel.md): one stream per DID and
+  channel in parallel
 - `specs/protocol.md`
 - `specs/product.md`
 - `specs/roadmap.md`

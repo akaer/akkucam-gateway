@@ -1,28 +1,30 @@
-# ADR-0010: Laufzeitmetadaten werden lokal ermittelt
+# ADR-0010: Runtime metadata comes from the local protocol
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die Hersteller-App zeigt variable Streambitrate und Akkuinformationen je Kamera. Diese Werte sollen ohne Cloud verfügbar sein.
+The vendor app shows variable stream bitrate and battery information per camera.
+These values should be available without a cloud service.
 
-## Entscheidung
+## Decision
 
-- Bitrate wird aus den pro Sekunde an FFmpeg geschriebenen H.264-Nutzdatenbytes berechnet.
-- Batterie wird über IO-Control `40448` für den aktiven Kanal abgefragt.
-- Abfrage erfolgt direkt nach Streamstart und danach alle 30 Sekunden.
-- Status wird über `/api/live/status` geliefert und vom Browser ungefähr sekündlich aktualisiert.
+- Bitrate is computed from the H.264 payload bytes written to FFmpeg per second.
+- Battery is read through IO-Control `40448` for the active channel.
+- The read runs directly after stream start and then every 30 seconds.
+- Status is served through `/api/live/status` and refreshed by the browser about
+  once per second.
 
-## Begründung
+## Reasoning
 
-- entspricht den tatsächlich verarbeiteten Videodaten
-- keine plattformspezifische Netzwerkschnittstellenmessung
-- Batterieformat ist aus Live-Mitschnitt und Hardwareantwort verifiziert
-- keine Cloud- oder Telemetriedienste notwendig
+- Matches the video data actually processed
+- No platform-specific network interface measurement
+- The battery format is verified from live captures and hardware replies
+- No cloud or telemetry services needed
 
-## Konsequenzen
+## Consequences
 
-- angezeigte Bitrate enthält keinen Netzwerkoverhead.
-- erste Bitrate kann bis zum nächsten Sekundentakt `0` sein.
-- Batterie kann bis zur ersten Antwort fehlen.
+- The displayed bitrate excludes network overhead.
+- The first bitrate can be `0` until the next one-second tick.
+- Battery data can be missing until the first reply.

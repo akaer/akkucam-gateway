@@ -1,133 +1,127 @@
-# ADR-0030: Barrierefreiheit der Oberfläche
+# ADR-0030: Accessibility of the interface
 
 - Status: Accepted
-- Datum: 2026-11-24
+- Date: 2026-11-24
 
-## Kontext
+## Context
 
-Die Oberfläche respektierte bereits `prefers-reduced-motion`, hatte
-Fokusringe und native `<dialog>`-Elemente mit Fokusführung. Ungeregelt waren
-jedoch Kontrastziele, Trefferflächen, die Semantik der Kacheln und das
-Verhalten auf Geräten mit Notch.
+The interface already respected `prefers-reduced-motion`, had focus rings and
+native `<dialog>` elements with focus handling. Contrast targets, hit areas, tile
+semantics and behavior on devices with a notch were unregulated.
 
-Zwei konkrete Fehler fielen dabei auf:
+Two concrete defects stood out:
 
-- Kacheln waren `<article tabindex="0">` mit eigenem Klick- und
-  Tastaturhandler, enthielten aber verschachtelte Buttons. Ein `role="button"`
-  wäre damit ungültig, ein generisches Element ohne Rolle ist für
-  Screenreader nicht benannt.
-- `viewport-fit=cover` war gesetzt, aber `env(safe-area-inset-*)` kam nirgends
-  vor. Bottom-Sheet und Topbar konnten auf dem iPhone unter der Notch oder dem
-  Home-Indicator liegen.
+- Tiles were `<article tabindex="0">` with their own click and keyboard handler but
+  contained nested buttons. A `role="button"` would be invalid, and a generic
+  element without a role is unnamed for screen readers.
+- `viewport-fit=cover` was set, but `env(safe-area-inset-*)` appeared nowhere. The
+  bottom sheet and top bar could sit under the notch or the home indicator on the
+  iPhone.
 
-## Entscheidung
+## Decision
 
-### Kontrast
+### Contrast
 
-- Text ≥ 4,5:1 gegen seine Fläche, auch für Placeholder- und Status-Text.
-- Nicht-Text-Elemente (Fokusring, Rahmen, Icons) ≥ 3:1.
-- Geprüft werden mindestens Primärbutton, Fehlertext und Status-Badge in
-  beiden Themes; die Werte stehen in ADR-0029.
+- Text at least 4.5:1 against its surface, including placeholder and status text.
+- Non-text elements (focus ring, borders, icons) at least 3:1.
+- At minimum the primary button, error text and status badge are checked in both
+  themes; the values are in ADR-0029.
 
-### Trefferflächen
+### Hit areas
 
-- Icon-only-Buttons: 44 × 44 px (`--icon-button`), Dialog- und
-  Popover-Schließen eingeschlossen.
-- Inline-Textaktionen: mindestens 24 px Höhe plus Abstand (WCAG 2.5.8), weil
-  44 px in Tabellen und Zeilen das Layout sprengen würden.
-- Schalter bleiben Teil ihrer beschrifteten Zeile; die Zeile ist die
-  Trefferfläche.
+- Icon-only buttons: 44 × 44 px (`--icon-button`), including dialog and popover
+  close buttons.
+- Inline text actions: at least 24 px high plus spacing (WCAG 2.5.8), because 44 px
+  would break the layout in tables and rows.
+- Switches remain part of their labeled row; the row is the hit area.
 
-### Safe Area
+### Safe area
 
-- `viewport-fit=cover` bleibt; Topbar und mobile Sheets/Drawer erhalten
-  `env(safe-area-inset-top)` bzw. `env(safe-area-inset-bottom)`.
+- `viewport-fit=cover` stays; the top bar and mobile sheets and drawers get
+  `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)`.
 
-### Semantik der Kachel
+### Tile semantics
 
-- Die Kachel ist `role="group"` mit `aria-label` aus Kameraname und
-  Basisstation. Enter und Leertaste öffnen den Details-Drawer; Maus und Touch
-  behalten die ganze Fläche als Ziel.
-- Verschachtelte Buttons bleiben echte Buttons und damit einzeln fokussierbar.
-  Eine `button`-Rolle für die ganze Kachel ist ausgeschlossen.
+- The tile is `role="group"` with an `aria-label` built from camera name and base
+  station. Enter and Space open the details drawer; mouse and touch keep the whole
+  area as the target.
+- Nested buttons remain real buttons and therefore individually focusable. A
+  `button` role for the whole tile is ruled out.
 
-### Fokus und Tastatur
+### Focus and keyboard
 
-- `:focus-visible` mit 3 px Ring und Offset in beiden Themes.
-- Das Live-Daten-Popover setzt den Fokus auf sein Schließen, gibt ihn bei ×
-  und Escape an den Trigger zurück und schließt bei Klick außerhalb.
-- Dialoge bleiben native `<dialog>`-Elemente.
+- `:focus-visible` with a 3 px ring and offset in both themes.
+- The live data popover sets focus to its close button, returns focus to the trigger
+  on × and Escape and closes on an outside click.
+- Dialogs remain native `<dialog>` elements.
 
-### Bewegung
+### Motion
 
-- Animationen laufen nur bei erlaubter Bewegung; `prefers-reduced-motion`
-  deaktiviert Dialog-, Popover- und Schalter-Transitions sowie den
-  Verbindungs-Puls.
+- Animations run only when motion is allowed; `prefers-reduced-motion` disables
+  dialog, popover and switch transitions and the connection pulse.
 
-## Begründung
+## Reasoning
 
-- Ein Dashboard, das im Wohnzimmer auf dem Telefon bedient wird, braucht
-  belastbare Ziele und Lesbarkeit bei Sonnenlicht.
-- Die Gruppenrolle beschreibt die Kachel korrekt, ohne die enthaltenen
-  Bedienelemente zu verschlucken.
-- Safe-Area-Fehler fallen im Emulator nicht auf, auf dem Gerät sofort.
+- A dashboard used on a phone in the living room needs reliable targets and
+  readability in sunlight.
+- The group role describes the tile correctly without swallowing the controls
+  inside it.
+- Safe-area defects do not show in the emulator but appear immediately on the
+  device.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Kachel als `role="button"`:** ungültig mit verschachtelten Buttons;
-  Screenreader würden die inneren Aktionen nicht mehr ansagen. Verworfen.
-- **Eigener „Details“-Button in jeder Kachel:** zusätzliche sichtbare
-  Bedienung für eine Fläche, die bereits als Ganzes klickbar ist. Verworfen.
-- **44 px für alle Textlinks:** würde Zeilen in Drawer und Manager
-  auseinanderziehen; WCAG verlangt 24 px. Verworfen.
-- **Axe/Lighthouse als Abhängigkeit:** neues Werkzeug und ADR-Pflicht für
-  wenige Prüfungen; die Messungen sind mit `getComputedStyle` deterministisch
-  nachstellbar. Verworfen.
+- **Tile as `role="button"`:** invalid with nested buttons; screen readers would no
+  longer announce the inner actions. Rejected.
+- **Separate "Details" button in every tile:** extra visible control for an area
+  that is already clickable as a whole. Rejected.
+- **44 px for all text links:** would stretch rows in the drawer and manager; WCAG
+  requires 24 px. Rejected.
+- **Axe or Lighthouse as a dependency:** a new tool and an ADR obligation for a few
+  checks; `getComputedStyle` reproduces the measurements deterministically.
+  Rejected.
 
-## Konsequenzen
+## Consequences
 
-- `web/style.css` enthält `env(safe-area-inset-*)`; `TestStylesheetRespectsSafeAreaInsets`
-  prüft das, weil Playwright Insets nicht simulieren kann.
-- Die Wall-Suite prüft `role="group"`, `aria-label` und das Öffnen per
-  Enter.
-- Die Branding-Suite misst Kontrast und Schriftgewicht im Browser.
-- Neue Bedienelemente brauchen eine Trefferfläche von 44 px (Icon) bzw.
-  24 px (Inline-Text) und einen Kontrastnachweis.
-- Screenshots mit Notch bleiben ein manueller Prüfpunkt auf echter Hardware.
+- `web/style.css` contains `env(safe-area-inset-*)`;
+  `TestStylesheetRespectsSafeAreaInsets` checks it because Playwright cannot
+  simulate insets.
+- The wall suite checks `role="group"`, `aria-label` and opening with Enter.
+- The branding suite measures contrast and font weight in the browser.
+- New controls need a hit area of 44 px (icon) or 24 px (inline text) and a contrast
+  proof.
+- Screenshots with a notch remain a manual check on real hardware.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-- **Textskalierung:** `<meta name="text-scale" content="scale">` und relative
-  Typografie; der Playwright-Test prüft 200 % ohne Überlauf oder abgeschnittene
-  Kachel-Leisten.
-- **Leichte Verwerfung:** Dialoge, die per Klick außerhalb schließen dürfen,
-  tragen `closedby="any"`. Ohne native Unterstützung (Safari) prüft ein
-  Pointer-Fallback die Zeigerposition, nicht `event.target`. Code- und
-  Hilfe-Dialog bleiben bei `closerequest`, damit eine Eingabe nicht verloren
-  geht.
-- `dialog:modal` und `::backdrop` begrenzen Scrollgesten auf die oberste
-  Ebene.
-- **Überschriften:** Setup und Wand sind die einzige `h1` der Seite;
-  Dialogtitel bleiben konsistent `h2`.
-- **Codefeld:** Sichtbarkeitsschalter als `<button type="button">` mit
-  `aria-pressed`, statischem Label „Sicherheitscode anzeigen" und verstecktem
-  Warntext; er startet bei jedem Öffnen maskiert. Schließen-Buttons nutzen
-  `data-close` statt Inline-JavaScript.
+- **Text scaling:** `<meta name="text-scale" content="scale">` and relative
+  typography; the Playwright test checks 200 % without overflow or clipped tile
+  bars.
+- **Light dismissal:** dialogs that may close on an outside click carry
+  `closedby="any"`. Without native support (Safari), a pointer fallback checks the
+  pointer position, not `event.target`. The code and help dialogs keep
+  `closerequest` so input is not lost.
+- `dialog:modal` and `::backdrop` limit scroll gestures to the top layer.
+- **Headings:** setup and wall are the page's only `h1`; dialog titles stay
+  consistently `h2`.
+- **Code field:** the visibility toggle is a `<button type="button">` with
+  `aria-pressed`, a static label "Show security code" and hidden warning text; it
+  starts masked every time it opens. Close buttons use `data-close` instead of
+  inline JavaScript.
 
-## Nachtrag 2026-11-24 (Overlay statt Popover)
+## Addendum 2026-11-24 (overlay instead of popover)
 
-Das Live-Daten-Popover entfällt (ADR-0031). Seine Fokusregeln sind damit
-gegenstandslos. Das Overlay auf der Kachel ist `aria-hidden="true"` und
-`pointer-events: none`: Die Sekunden-Updates sollen Screenreader nicht
-unterbrechen, und die zugängliche Quelle bleibt der Details-Drawer. Der
-Schalter in den Wand-Einstellungen sitzt in einer beschrifteten Zeile; die
-Zeile ist die Trefferfläche, nicht der 38 × 22 px große Schalter allein.
+The live data popover is gone (ADR-0031). Its focus rules no longer apply. The
+overlay on the tile is `aria-hidden="true"` and `pointer-events: none`: the
+per-second updates should not interrupt screen readers, and the accessible source
+remains the details drawer. The switch in the wall settings sits in a labeled row;
+the row is the hit area, not the 38 × 22 px switch alone.
 
-## Verweise
+## References
 
-- ADR-0013: responsives Dashboard und Theme
-- ADR-0021: zweisprachige UI
-- ADR-0027: Live-Wand
-- ADR-0029: Design-Tokens und Icons
+- ADR-0013: Responsive dashboard and theme
+- ADR-0021: Bilingual UI
+- ADR-0027: Live wall
+- ADR-0029: Design tokens and icons
 - `web/style.css`, `web/app.js`, `web/index.html`, `web/e2e/`
 - `specs/testing.md`

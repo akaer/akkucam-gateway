@@ -1,50 +1,66 @@
-# ADR-0016: Stabile API-Fehlercodes und typisierte Fehler
+# ADR-0016: Stable API error codes and typed errors
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die HTTP-API lieferte Fehler bisher ausschließlich als freie Zeichenkette im Feld `error`. Clients konnten Fehler daher nur über den HTTP-Status oder über brüchige Textvergleiche unterscheiden. Interne Fehler wurden teils unverändert an den Browser weitergegeben. Fehlercodes fehlten vollständig.
+The HTTP API returned errors only as a free-form string in the `error` field.
+Clients could distinguish errors only by HTTP status or by brittle text
+comparison. Some internal errors reached the browser unchanged. Error codes were
+missing entirely.
 
-## Entscheidung
+## Decision
 
-- Jede Fehlerantwort enthält zusätzlich zum bisherigen Feld `error` ein stabiles Feld `code`.
-- Das Format bleibt flach und abwärtskompatibel: `{"error":"...","code":"..."}`.
-- Codes werden zentral in `internal/apierr` definiert.
-- Fachpakete liefern typisierte Sentinel-Fehler (`errors.Is`) und wrappen sie mit `%w`.
-- Die HTTP-Schicht mappt Sentinel-Fehler auf Code und Status. Sie vergleicht keine Fehlertexte.
-- Unbekannte Fehler werden als `internal_error` mit HTTP 500 und einer generischen Meldung ausgegeben. Details bleiben im Log.
-- Der Sicherheitscode erscheint weder in Fehlermeldungen noch in Logs.
+- Every error response carries a stable `code` field next to the existing
+  `error` field.
+- The format stays flat and backward compatible: `{"error":"...","code":"..."}`.
+- Codes are defined centrally in `internal/apierr`.
+- Domain packages return typed sentinel errors (`errors.Is`) and wrap them with
+  `%w`.
+- The HTTP layer maps sentinel errors to a code and status. It does not compare
+  error texts.
+- Unknown errors return `internal_error` with HTTP 500 and a generic message.
+  Details stay in the log.
+- The security code appears in neither error messages nor logs.
 
-## Begründung
+## Reasoning
 
-- Clients können Fehler stabil und sprachunabhängig behandeln.
-- Der API-Vertrag bleibt für bestehende Aufrufer kompatibel, weil `error` unverändert bleibt.
-- Typisierte Fehler verhindern, dass sich Verhalten ändert, sobald ein Meldungstext angepasst wird.
-- Generische Meldungen für unerwartete Fehler reduzieren das Risiko, interne Details preiszugeben.
+- Clients can handle errors reliably and independent of language.
+- The API contract stays compatible for existing callers because `error` does
+  not change.
+- Typed errors stop behavior from changing when a message text is edited.
+- Generic messages for unexpected errors reduce the risk of leaking internal
+  details.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Verschachteltes Format** `{"error":{"code":"...","message":"..."}}`: ausdrucksstärker, aber bricht bestehende Clients und die aktuelle Dashboard-Logik.
-- **Nur HTTP-Status**: zu grob, mehrere Ursachen teilen sich denselben Status.
-- **Fehlertexte vergleichen**: bereits vorhanden und als brüchig verworfen.
+- **Nested format** `{"error":{"code":"...","message":"..."}}`: more expressive,
+  but breaks existing clients and the current dashboard logic.
+- **HTTP status only:** too coarse; several causes share the same status.
+- **Compare error texts:** already in use and rejected as brittle.
 
-## Konsequenzen
+## Consequences
 
-- `web/app.js` zeigt eine übersetzte Beschreibung des Codes (`error.code.<code>`) statt der Servermeldung; unbekannte Codes fallen auf die Servermeldung zurück.
-- Neue Fehlerpfade benötigen einen Code in `internal/apierr` und einen Test.
-- `specs/api.md` dokumentiert das Format und die Codes.
-- `internal/openapi/openapi.json` beschreibt das Fehlerschema.
+- `web/app.js` shows a translated description of the code
+  (`error.code.<code>`) instead of the server message; unknown codes fall back to
+  the server message.
+- New error paths need a code in `internal/apierr` and a test.
+- `specs/api.md` documents the format and the codes.
+- `internal/openapi/openapi.json` describes the error schema.
 
-## Verweise
+## References
 
-- ADR-0017: OpenAPI als maschinenlesbarer API-Vertrag
+- ADR-0017: OpenAPI as the machine-readable API contract
 - `internal/apierr/apierr.go`
 - `specs/api.md`
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-- Der Default-Zweig von `writeError` in `internal/gateway/server.go` delegiert an `apierr.Write`. Unbekannte Fehler liefern damit wie oben festgelegt `internal_error` mit HTTP 500 und einer generischen Meldung; Details stehen im Log des Handlers. Zuvor wurden sie fälschlich als `upstream_error`/502 gemeldet, sodass etwa Schreibfehler im HLS-Verzeichnis wie Gerätefehler aussahen.
-- `TestUnknownErrorUsesInternalError` in `internal/gateway/api_test.go` sichert diesen Pfad ab.
-
+- The default branch of `writeError` in `internal/gateway/server.go` delegates to
+  `apierr.Write`. Unknown errors therefore return `internal_error` with HTTP 500
+  and a generic message as decided above; details go to the handler log. Before,
+  they were reported incorrectly as `upstream_error`/502, so write failures in
+  the HLS directory looked like device failures.
+- `TestUnknownErrorUsesInternalError` in `internal/gateway/api_test.go` covers
+  this path.

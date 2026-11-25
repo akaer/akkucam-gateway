@@ -1,43 +1,47 @@
-# ADR-0001: OpenSpec-inspirierte Dokumentation ohne CLI-Zwang
+# ADR-0001: OpenSpec-inspired documentation without a CLI requirement
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Das Projekt entstand iterativ aus Reverse Engineering. Entscheidungen, bestätigte Fakten und offene Annahmen dürfen nicht nur in Chatverläufen existieren. OpenSpec bietet einen sinnvollen Ansatz aus dauerhaften Specs und änderungsbezogenen Artefakten.
+The project grew out of reverse engineering. Its behavior and contracts would
+otherwise live only in chat history. OpenSpec offers a structure for current
+specifications and change proposals, but adds a toolchain.
 
-## Entscheidung
+## Decision
 
-Das Projekt verwendet `specs/` mit dauerhaften Spezifikationen, nummerierten ADRs und bei Bedarf `specs/changes/<name>/`. Die Dokumente sind OpenSpec-inspiriert, benötigen aber keine installierte OpenSpec-CLI.
+The repository keeps its specifications in `specs/` as plain Markdown. The layout
+follows OpenSpec: current documents at the top level, architecture decisions in
+`adrs/`, and change proposals in `changes/`. No OpenSpec CLI, schema or generator
+is required.
 
-## Begründung
+## Reasoning
 
-- Markdown bleibt unmittelbar lesbar
-- keine zusätzliche Node-/Nix-/CLI-Abhängigkeit
-- geeignet für den aktuellen kleinen Brownfield-Codebestand
-- spätere Einführung des offiziellen OpenSpec-Workflows bleibt möglich
+- Plain Markdown needs no installation and no build step.
+- The structure stays readable in any editor and on GitHub.
+- Decisions and current behavior sit next to each other.
+- A later move to OpenSpec tooling stays possible because the layout already
+  matches.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- OpenSpec sofort installieren und initialisieren: erzeugt Agenten- und Workflowartefakte, die für den aktuellen Dokumentationsauftrag mehr Umfang als Nutzen bringen.
-- nur ADRs: dokumentiert Entscheidungen, aber nicht den aktuellen Protokoll- und API-Vertrag.
-- nur README: wird bei wachsendem Umfang unübersichtlich.
+- **OpenSpec CLI and schema:** adds a dependency and a validation step for a
+  single-person project.
+- **Wiki or issue tracker only:** separates behavior from the code and from the
+  decisions.
+- **Code comments only:** carries no product or protocol context.
 
-## Konsequenzen
+## Consequences
 
-- Maintainer müssen Specs manuell mit Codeänderungen synchron halten.
-- künftige größere Features sollen vor Implementierung als Change mit Proposal, Design und Tasks angelegt werden.
+- Every behavior change updates the matching document.
+- Structural or contract changes add an ADR.
+- `specs/README.md` explains the document types and maintenance rules.
 
-## Nachtrag 2026-11-24: Nachträge und Archiv
+## Addendum 2026-11-24
 
-Dieses ADR beschreibt die Dokumentationsstruktur. Zwei Regeln wurden präzisiert,
-weil die Praxis sie bereits so handhabt:
-
-- ADRs bleiben nach Annahme lesbar, dürfen aber datierte Abschnitte `## Nachtrag`
-  erhalten. Ersetzt ein späteres ADR eine Entscheidung ganz oder in wesentlichen
-  Teilen, wird der Status auf `Superseded` bzw. `Partially superseded` gesetzt und
-  im Index geführt (`specs/adrs/README.md`).
-- Umgesetzte Changes wandern von `specs/changes/<name>/` nach
-  `specs/changes/archive/<name>/` und gelten dort als Referenz, nicht als offener
-  Vorschlag.
+- ADRs are historical once accepted. Corrections go into a dated `## Addendum`
+  section; the original decision stays visible.
+- A replaced decision gets the status `Superseded` or `Partially superseded` and a
+  reference to the replacing ADR.
+- Implemented changes move from `changes/` to `changes/archive/`.

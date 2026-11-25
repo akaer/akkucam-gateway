@@ -177,4 +177,4 @@ Bug reports are welcome in the [issue tracker](https://github.com/akaer/akkucam-
 
 ## Documentation
 
-Architecture, protocol, API, security, test strategy, roadmap and ADRs: [`specs/README.md`](specs/README.md). The documents are written in German.
+Architecture, protocol, API, security, test strategy, roadmap and ADRs: [`specs/README.md`](specs/README.md). The documents are written in English.

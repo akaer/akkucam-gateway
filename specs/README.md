@@ -1,56 +1,73 @@
-# Gateway-Spezifikationen
+# Gateway specifications
 
-Dieser Ordner ist die technische und produktbezogene Source of Truth für den AkkuCam Gateway. Die Struktur ist von [OpenSpec](https://github.com/Fission-AI/OpenSpec) inspiriert, bleibt aber absichtlich ohne zusätzliche CLI oder Build-Abhängigkeit nutzbar.
+This folder is the technical and product source of truth for the AkkuCam
+Gateway. The structure follows [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+but stays usable without an extra CLI or build dependency.
 
-## Dokumenttypen
+## Document types
 
-### Aktuelle Spezifikationen
+### Current specifications
 
-| Dokument | Inhalt |
+| Document | Content |
 |---|---|
-| [product.md](product.md) | Ziel, Nutzerwert, Scope und Anforderungen |
-| [architecture.md](architecture.md) | Systemkontext, Komponenten und Datenfluss |
-| [protocol.md](protocol.md) | Verifizierter Stand des lokalen PPCS-Protokolls |
-| [api.md](api.md) | HTTP-API und Laufzeitverhalten |
-| [security.md](security.md) | Vertrauensgrenzen, Secrets und Restrisiken |
-| [testing.md](testing.md) | Teststrategie und verifizierte Hardware |
-| [roadmap.md](roadmap.md) | Offene Themen und geplante Entwicklung |
-| [sources.md](sources.md) | Reverse-Engineering-Quellen und Drittsoftware |
+| [product.md](product.md) | Goal, user value, scope and requirements |
+| [architecture.md](architecture.md) | System context, components and data flow |
+| [protocol.md](protocol.md) | Verified state of the local PPCS protocol |
+| [api.md](api.md) | HTTP API and runtime behavior |
+| [security.md](security.md) | Trust boundaries, secrets and residual risks |
+| [testing.md](testing.md) | Test strategy and verified hardware |
+| [roadmap.md](roadmap.md) | Open topics and planned development |
+| [sources.md](sources.md) | Reverse-engineering sources and third-party software |
 
-Der maschinenlesbare API-Vertrag liegt bewusst außerhalb dieses Ordners in [`internal/openapi/openapi.json`](../internal/openapi/openapi.json), weil er per `go:embed` in die Anwendung eingebettet wird. `api.md` beschreibt denselben Vertrag für Menschen.
+The machine-readable API contract lives outside this folder in
+[`internal/openapi/openapi.json`](../internal/openapi/openapi.json) because
+`go:embed` embeds it into the application. `api.md` describes the same contract
+for humans.
 
 ### Architecture Decision Records
 
-Die Entscheidungen unter [adrs/](adrs/) erklären nicht nur **was** implementiert wurde, sondern auch **warum**, welche Alternativen betrachtet wurden und welche Konsequenzen akzeptiert werden.
+The decisions under [adrs/](adrs/) explain **what** was implemented, **why**,
+which alternatives were considered and which consequences were accepted.
 
-ADRs sind nach Annahme historische Dokumente. Korrekturen und Ergänzungen werden als datierter Abschnitt `## Nachtrag` angehängt; die ursprüngliche Entscheidung bleibt lesbar. Wird eine Entscheidung ganz oder in wesentlichen Teilen ersetzt, erhält sie den Status `Superseded` oder `Partially superseded` mit Verweis auf das neue ADR. Der Status steht im Kopf des ADR und in der Statusspalte von [`adrs/README.md`](adrs/README.md).
+ADRs are historical documents once accepted. Corrections and additions go into
+a dated `## Addendum` section so the original decision stays readable. When a
+later ADR replaces a decision in whole or in part, the original gets the status
+`Superseded` or `Partially superseded` and a reference to the new ADR. The
+status appears in the ADR header and in the status column of
+[`adrs/README.md`](adrs/README.md).
 
-## OpenSpec-Bezug
+## OpenSpec relationship
 
-OpenSpec trennt dauerhafte Spezifikationen von geplanten Änderungen. Für dieses Projekt gilt analog:
+OpenSpec separates permanent specifications from planned changes. This project
+follows the same split:
 
 ```text
 specs/
-├── *.md                 # aktueller, implementierter Stand
-├── adrs/                # dauerhaft nachvollziehbare Entscheidungen
-└── changes/             # Änderungsartefakte
-    ├── <change-name>/   # geplant, noch nicht umgesetzt
+├── *.md                 # current, implemented state
+├── adrs/                # permanent, traceable decisions
+└── changes/             # change artifacts
+    ├── <change-name>/   # planned, not implemented yet
     │   ├── proposal.md
     │   ├── design.md
     │   └── tasks.md
-    └── archive/<change-name>/  # umgesetzt und archiviert (Referenz)
+    └── archive/<change-name>/  # implemented and archived (reference)
 ```
 
-Der Ordner `changes/` wird erst angelegt, wenn eine noch nicht implementierte Änderung konkret geplant wird. Nach der Umsetzung wandert der Change nach `changes/archive/<change-name>/`; dort bleibt er als Referenz erhalten, gilt aber nicht mehr als offener Vorschlag. Bereits implementierte Erkenntnisse werden nicht nachträglich als offene Changes dargestellt.
+The `changes/` folder appears only when a concrete, not yet implemented change
+is planned. After implementation the change moves to
+`changes/archive/<change-name>/`, where it stays as a reference and no longer
+counts as an open proposal. Implemented findings are not presented afterwards
+as open changes.
 
-## Pflege
+## Maintenance
 
-Eine Codeänderung muss die Spezifikation aktualisieren, wenn sie mindestens einen dieser Punkte verändert:
+A code change must update the specification when it changes at least one of
+these points:
 
-- öffentliches API oder UI-Verhalten
-- Netzwerkprotokoll oder Paketformat
-- Speicherung oder Verarbeitung von Zugangsdaten
-- Deployment-, Container- oder Netzwerkmodell
-- Medienformat, Qualität, Latenz oder Metadaten
-- unterstützte Geräte oder Firmwarevarianten
-- eine bestehende Architekturentscheidung
+- public API or UI behavior
+- network protocol or packet format
+- storage or processing of credentials
+- deployment, container or network model
+- media format, quality, latency or metadata
+- supported devices or firmware variants
+- an existing architecture decision

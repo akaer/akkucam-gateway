@@ -1,46 +1,58 @@
-# ADR-0017: OpenAPI als maschinenlesbarer API-Vertrag
+# ADR-0017: OpenAPI as the machine-readable API contract
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die HTTP-API war nur in `specs/api.md` als Prosa dokumentiert. Es gab keinen maschinenlesbaren Vertrag, keine interaktive Dokumentation und keine automatische Prüfung, ob die Dokumentation zu den tatsächlich registrierten Routen passt.
+The HTTP API was documented only as prose in `specs/api.md`. There was no
+machine-readable contract, no interactive documentation and no automatic check
+that the documentation matched the registered routes.
 
-## Entscheidung
+## Decision
 
-- `internal/openapi/openapi.json` ist der kanonische OpenAPI-3.0-Vertrag.
-- Die Datei wird per `go:embed` in die Binärdatei eingebettet und unter `GET /api/openapi.json` ausgeliefert.
-- Eine lokal gebündelte Swagger UI wird unter `GET /api/docs` bereitgestellt. Es werden keine CDN- oder Cloud-Ressourcen geladen.
-- Die Swagger-UI-Assets liegen unter `web/swagger/` und werden mit der bestehenden Web-Wurzel ausgeliefert.
-- Ein Contract-Test vergleicht die Routentabelle in `internal/gateway` mit den Pfaden und Methoden der OpenAPI-Datei. Abweichungen lassen den Test fehlschlagen.
-- Die Datei liegt bewusst unter `internal/openapi/`, weil `go:embed` nur Dateien innerhalb des Paketverzeichnisses einbetten kann. `specs/api.md` bleibt die menschliche Ergänzung und verweist auf den Vertrag.
+- `internal/openapi/openapi.json` is the canonical OpenAPI 3.0 contract.
+- `go:embed` embeds the file into the binary and serves it at
+  `GET /api/openapi.json`.
+- A locally bundled Swagger UI is served at `GET /api/docs`. No CDN or cloud
+  resources are loaded.
+- The Swagger UI assets live under `web/swagger/` and are served from the
+  existing web root.
+- A contract test compares the route table in `internal/gateway` with the paths
+  and methods in the OpenAPI file. A mismatch fails the test.
+- The file lives under `internal/openapi/` because `go:embed` can only embed
+  files inside the package directory. `specs/api.md` remains the human
+  companion and points to the contract.
 
-## Begründung
+## Reasoning
 
-- Maschinenlesbarer Vertrag für Clients, Generatoren und Tests.
-- Keine zusätzliche Laufzeitabhängigkeit und kein Cloud-Zugriff.
-- Der Contract-Test verhindert, dass Doku und Implementierung auseinanderlaufen.
-- Eine lokale Swagger UI macht die API ohne zusätzliche Werkzeuge erkundbar.
+- A machine-readable contract for clients, generators and tests.
+- No extra runtime dependency and no cloud access.
+- The contract test stops documentation and implementation from drifting.
+- A local Swagger UI makes the API explorable without extra tools.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Nur `specs/api.md`**: bereits vorhanden, aber nicht maschinenlesbar und nicht testbar.
-- **Swagger-Annotationen im Go-Code**: erzeugt zusätzliche Toolchain-Abhängigkeiten und vermischt Dokumentation mit Handler-Code.
-- **Swagger UI vom CDN laden**: verstößt gegen die Cloud-Free-Regel.
-- **OpenAPI-Datei unter `specs/`**: würde `go:embed` verletzen oder eine Kopie erfordern.
+- **Only `specs/api.md`**: already present, but not machine-readable and not
+  testable.
+- **Swagger annotations in Go code**: adds toolchain dependencies and mixes
+  documentation with handler code.
+- **Load Swagger UI from a CDN**: violates the cloud-free rule.
+- **OpenAPI file under `specs/`**: would break `go:embed` or require a copy.
 
-## Konsequenzen
+## Consequences
 
-- Jede API-Änderung muss `openapi.json` aktualisieren.
-- Die Spec verwendet eine relative Server-URL, damit „Try it out“ vom jeweiligen Origin arbeitet und nicht fest auf `127.0.0.1` zeigt.
-- Die Swagger-UI-Assets unterliegen Apache-2.0; die Lizenz liegt unter `web/swagger/LICENSE`.
-- `README.md` und `specs/api.md` verlinken `/api/docs` und `/api/openapi.json`.
-- Der Contract-Test läuft mit `go test ./...`.
+- Every API change must update `openapi.json`.
+- The spec uses a relative server URL so "Try it out" works from the current
+  origin and does not point at `127.0.0.1` unconditionally.
+- The Swagger UI assets are Apache-2.0; the license sits in
+  `web/swagger/LICENSE`.
+- `README.md` and `specs/api.md` link `/api/docs` and `/api/openapi.json`.
+- The contract test runs with `go test ./...`.
 
-## Verweise
+## References
 
-- ADR-0016: stabile API-Fehlercodes
+- ADR-0016: Stable API error codes
 - `internal/openapi/openapi.go`
 - `internal/gateway/openapi_test.go`
 - `specs/api.md`

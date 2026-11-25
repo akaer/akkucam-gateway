@@ -1,30 +1,33 @@
-# Proposal: Multi-Camera-Dashboard
+# Proposal: Multi-camera dashboard
 
 ## Problem
 
-Die Basisstation besitzt mehrere gekoppelte Kameras, die bisher nur über einen statischen Kanalwähler und ausschließlich nacheinander angezeigt werden konnten. Die Oberfläche enthielt redundante Diagnoseaktionen und skalierte weder auf große Bildschirme noch auf mobile Geräte optimal.
+The base station has several coupled cameras, but the interface showed them only
+through a static channel selector and only one after another. The interface carried
+redundant diagnostic actions and did not scale well to large screens or mobile
+devices.
 
-## Ziel
+## Goal
 
-- gekoppelte Kanäle dynamisch vom Hub laden
-- mehrere Kanäle gleichzeitig streamen
-- Einzel- und Sammelaktionen
-- Fullscreen pro Karte
-- responsive Dashboarddarstellung
-- Light/Dark-Theme
-- technische Details ohne Belastung des Hauptflows
-- vorhandene Geräte-/Firmware-Metadaten ohne generische Platzhalter
-- Bewegungserkennung je Kamera schalten
-- konfliktträchtige Inventar-/Einstellungsaktionen bei laufenden Streams sperren
+- load coupled channels dynamically from the hub
+- stream several channels at the same time
+- single and bulk actions
+- fullscreen per tile
+- responsive dashboard layout
+- light and dark theme
+- technical details without burdening the main flow
+- available device and firmware metadata without generic placeholders
+- switch motion detection per camera
+- lock conflicting inventory and settings actions while streams run
 
-## Erfolgskriterien
+## Success criteria
 
-- reale Hub-Kameraliste liefert zwei Karten mit Gerätenamen
-- beide HLS-Streams laufen parallel und besitzen eigene Statusmetrik
-- kein Code wird persistent gespeichert
-- Oberfläche ist ab 320 px Breite nutzbar und verwendet große Displays mit mehreren Spalten
-- Kamera-MAC und andere nicht gelieferte Werte erzeugen keine UI-Felder
-- Motion-Änderungen verwenden vollständiges Read-Modify-Write und werden verifiziert
+- the real hub camera list returns two tiles with device names
+- both HLS streams run in parallel and carry their own status metric
+- no code is stored persistently
+- the interface works from 320 px width and uses several columns on large displays
+- camera MAC and other unavailable values create no UI fields
+- motion changes use a complete read-modify-write and are verified
 
 ## Status
 

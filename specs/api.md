@@ -1,46 +1,55 @@
-# HTTP-API
+# HTTP API
 
-## Allgemeines
+## General
 
-- Standardadresse: `http://<gateway-host>:8080`
+- Default address: `http://<gateway-host>:8080`
 - Format: JSON, UTF-8
-- aktueller Stand: keine HTTP-Authentifizierung
-- Einsatzbereich: vertrauenswürdiges lokales Netz
+- Current state: no HTTP authentication
+- Scope: trusted local network
 
-## Fehlerformat
+## Error format
 
-Fehlerantworten sind flach und abwärtskompatibel:
+Error responses are flat and backward compatible:
 
 ```json
 {"error":"valid ip, did and securityCode are required","code":"validation_failed"}
 ```
 
-`error` enthält eine menschenlesbare Meldung. `code` ist stabil und für Clients gedacht. Unbekannte Fehler werden als `internal_error` mit HTTP 500 und einer generischen Meldung ausgegeben; Details bleiben im Log.
+`error` carries a human-readable message. `code` is stable and meant for clients.
+Unknown errors return `internal_error` with HTTP 500 and a generic message; details
+stay in the log.
 
-Die API bleibt englisch. Die Weboberfläche übersetzt bekannte Codes über `error.code.<code>` aus `web/locales/*.json` (ADR-0021); andere Clients können denselben Code-Mechanismus nutzen. Neue Codes müssen in beiden Katalogen ergänzt werden.
+The API stays English. The web interface translates known codes through
+`error.code.<code>` from `web/locales/*.json` (ADR-0021); other clients can use the
+same code mechanism. New codes must be added to both catalogs.
 
-| Code | Typischer HTTP-Status | Bedeutung |
+| Code | Typical HTTP status | Meaning |
 |---|---:|---|
-| `invalid_json` | 400 | Request-Body ist kein gültiges JSON |
-| `validation_failed` | 400 | Pflichtfeld fehlt oder Wert liegt außerhalb des erlaubten Bereichs |
-| `method_not_allowed` | 405 | Pfad existiert, Methode nicht |
-| `not_found` | 404 | API-Pfad existiert nicht |
-| `conflict` | 409 | Aktion ist während eines aktiven Streams gesperrt |
-| `unauthorized` | 401 | Sicherheitscode wurde von der Basisstation abgelehnt |
-| `upstream_timeout` | 504 | Basisstation antwortet nicht rechtzeitig |
-| `upstream_error` | 502 | Basisstation meldet einen Fehler oder die Sitzung bricht ab |
-| `internal_error` | 500 | Unerwarteter interner Fehler |
+| `invalid_json` | 400 | Request body is not valid JSON |
+| `validation_failed` | 400 | Required field missing or value outside the allowed range |
+| `method_not_allowed` | 405 | Path exists, method does not |
+| `not_found` | 404 | API path does not exist |
+| `conflict` | 409 | Action is blocked while a stream is active |
+| `unauthorized` | 401 | Base station rejected the security code |
+| `upstream_timeout` | 504 | Base station does not answer in time |
+| `upstream_error` | 502 | Base station reports an error or the session breaks |
+| `internal_error` | 500 | Unexpected internal error |
 
-## Maschinenlesbarer Vertrag
+## Machine-readable contract
 
-- OpenAPI-Dokument: `GET /api/openapi.json`
+- OpenAPI document: `GET /api/openapi.json`
 - Swagger UI: `GET /api/docs`
 
-Die Swagger UI wird lokal ausgeliefert und lädt keine CDN-Ressourcen. Der Vertrag liegt in `internal/openapi/openapi.json`; ein Contract-Test prüft, dass Routentabelle und Dokument übereinstimmen. Die Spec verwendet die relative Server-URL `/`, damit „Try it out“ die Requests an denselben Origin schickt – auch wenn das Dashboard über eine LAN-IP oder einen Reverse Proxy geöffnet wird. Eine feste `127.0.0.1`-URL würde im Browser auf den Client zeigen und `NetworkError` auslösen.
+The Swagger UI ships locally and loads no CDN resources. The contract lives in
+`internal/openapi/openapi.json`; a contract test checks that the route table and the
+document match. The spec uses the relative server URL `/` so "Try it out" sends
+requests to the same origin, even when the dashboard is opened through a LAN IP or a
+reverse proxy. A fixed `127.0.0.1` URL would point at the client in the browser and
+trigger `NetworkError`.
 
 ## `GET /api/health`
 
-Beispielantwort:
+Example response:
 
 ```json
 {"status":"ok","mode":"local-only","live":"hls"}
@@ -48,8 +57,8 @@ Beispielantwort:
 
 ## `GET /api/version`
 
-Liefert die semantische Version und den kurzen Git-Commit des laufenden
-Binaries. Fehlt der Commit im Build, entfällt das Feld.
+Returns the semantic version and short Git commit of the running binary. If the
+build has no commit, the field is omitted.
 
 ```json
 {"version":"0.1.0-beta.2","commit":"bfe827d"}
@@ -57,7 +66,7 @@ Binaries. Fehlt der Commit im Build, entfällt das Feld.
 
 ## `POST /api/discover`
 
-Startet WAI- und PPPP-LAN-Discovery. Request-Body ist leer.
+Starts WAI and PPPP LAN discovery. The request body is empty.
 
 ```json
 {
@@ -75,21 +84,22 @@ Startet WAI- und PPPP-LAN-Discovery. Request-Body ist leer.
 }
 ```
 
-Der PPCS-Port ist dynamisch und darf nicht dauerhaft gespeichert werden. `mac` fehlt, wenn die Adresse nicht aus der lokalen ARP-Tabelle ermittelt werden konnte.
+The PPCS port is dynamic and must not be stored permanently. `mac` is omitted when
+the address could not be read from the local ARP table.
 
 ## `POST /api/session/probe`
 
-Öffnet eine lokale Sitzung bis `P2P_RDY` und schließt sie sofort wieder.
+Opens a local session up to `P2P_RDY` and closes it immediately.
 
 ```json
 {"ip":"192.0.2.10","did":"CMAG-000001-ABCDE"}
 ```
 
-Der Endpunkt sendet keine Zugangsdaten oder Kamerakommandos.
+The endpoint sends no credentials or camera commands.
 
 ## `POST /api/session/authenticate`
 
-Prüft den Sicherheitscode und schließt die Sitzung nach erfolgreicher Authentifizierung.
+Checks the security code and closes the session after successful authentication.
 
 ```json
 {
@@ -99,11 +109,12 @@ Prüft den Sicherheitscode und schließt die Sitzung nach erfolgreicher Authenti
 }
 ```
 
-Der Code wird weder in Antworten noch Logs ausgegeben. Transport-Timeouts werden bis zu dreimal wiederholt; eine explizite Ablehnung nicht.
+The code appears in neither responses nor logs. Transport timeouts are retried up to
+three times; an explicit rejection is not.
 
 ## `POST /api/live/start`
 
-Startet oder ersetzt den aktiven Stream derselben DID und desselben Kanals.
+Starts or replaces the active stream for the same DID and channel.
 
 ```json
 {
@@ -115,7 +126,7 @@ Startet oder ersetzt den aktiven Stream derselben DID und desselben Kanals.
 }
 ```
 
-Erfolgsantwort:
+Success response:
 
 ```json
 {
@@ -124,13 +135,15 @@ Erfolgsantwort:
 }
 ```
 
-Der Endpunkt bestätigt Session und FFmpeg-Start. Bis zur ersten HLS-Playlist können wegen Kamera-Wake-up weitere Sekunden vergehen.
+The endpoint confirms the session and the FFmpeg start. Camera wake-up can add
+several seconds before the first HLS playlist appears.
 
-Die Stream-ID enthält die Kanalnummer, beispielsweise `CMAG-000001-ABCDE-ch2`. Dadurch können mehrere Kanäle derselben DID gleichzeitig laufen.
+The stream ID carries the channel number, for example `CMAG-000001-ABCDE-ch2`.
+Several channels of the same DID can therefore run at the same time.
 
 ## `POST /api/channels`
 
-Authentifiziert lokal und liest die gekoppelte Kameraliste der Basisstation.
+Authenticates locally and reads the coupled camera list from the base station.
 
 ```json
 {"ip":"192.0.2.10","did":"CMAG-000001-ABCDE","securityCode":"example-code"}
@@ -167,11 +180,15 @@ Authentifiziert lokal und liest die gekoppelte Kameraliste der Basisstation.
 }
 ```
 
-Nicht verfügbare Metadatenfelder fehlen vollständig. Eine Kamera-MAC ist nicht Teil der bekannten Hub-Antworten und wird daher nicht ausgegeben. Während eines aktiven Streams antwortet der Endpunkt mit `409 Conflict`.
+Unavailable metadata fields are omitted entirely. A camera MAC is not part of the
+known hub replies and is therefore not returned. While a stream is active, the
+endpoint answers with `409 Conflict`.
 
 ## `POST /api/motion`
 
-Ändert die PIR-Bewegungserkennung eines gekoppelten Kanals. Der Gateway liest zunächst den vollständigen Parameterblock, ändert nur `pirMode` und verifiziert die Einstellung anschließend durch erneutes Lesen.
+Changes PIR motion detection for a coupled channel. The gateway first reads the
+complete parameter block, changes only `pirMode` and verifies the setting by reading
+it again.
 
 ```json
 {
@@ -187,7 +204,8 @@ Nicht verfügbare Metadatenfelder fehlen vollständig. Eine Kamera-MAC ist nicht
 {"index":0,"motionEnabled":false,"pirMode":0,"pirSensitivityDay":65}
 ```
 
-`enabled` muss auch für `false` explizit vorhanden sein. Während eines aktiven Streams antwortet der Endpunkt mit `409 Conflict`.
+`enabled` must be present explicitly even for `false`. While a stream is active, the
+endpoint answers with `409 Conflict`.
 
 ## `GET /api/live/status?id=<id>`
 
@@ -203,7 +221,9 @@ Nicht verfügbare Metadatenfelder fehlen vollständig. Eine Kamera-MAC ist nicht
 }
 ```
 
-`channel` ist nullbasiert. `battery` fehlt, solange noch keine gültige Antwort vorliegt. `framesPerSecond` wird aus der eingehenden H.264-Payloadrate pro Sekunde abgeleitet und fehlt, solange noch keine Messung vorliegt.
+`channel` is zero-based. `battery` is omitted until a valid reply exists.
+`framesPerSecond` is derived from the incoming H.264 payload rate per second and is
+omitted until a measurement exists.
 
 ## `POST /api/live/stop`
 
@@ -211,7 +231,7 @@ Nicht verfügbare Metadatenfelder fehlen vollständig. Eine Kamera-MAC ist nicht
 {"id":"CMAG-000001-ABCDE-ch2"}
 ```
 
-Beendet PPCS-Sitzung und FFmpeg-Prozess. Mehrfaches Stoppen ist idempotent.
+Stops the PPCS session and the FFmpeg process. Stopping repeatedly is idempotent.
 
 ## HLS
 
@@ -220,4 +240,4 @@ GET /hls/<id>/index.m3u8
 GET /hls/<id>/indexN.ts
 ```
 
-HLS-Dateien sind flüchtige Laufzeitdaten und keine Aufzeichnungsschnittstelle.
+HLS files are transient runtime data and not a recording interface.

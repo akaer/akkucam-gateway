@@ -1,119 +1,109 @@
-# ADR-0028: UI-Texte, Terminologie und Fehlerwege
+# ADR-0028: UI copy, terminology and error paths
 
 - Status: Accepted
-- Datum: 2026-11-24
+- Date: 2026-11-24
 
-## Kontext
+## Context
 
-Die Oberfläche war funktional zweisprachig, aber sprachlich unentschieden:
-Katalogwerte wurden in `app.js` zu Sätzen zusammengeklebt
-(`" · scrolls"`, `{suffix}`), drei Register wechselten sich ab
-(„Kameras laden“, „Lade Kameras …“, „Warte auf den Videostream“), und
-„Browserspeicher“ bezeichnete sowohl den flüchtigen RAM als auch
-`localStorage`. Dazu kamen Erklärungen der Implementierung statt einer
-Handlung („Reset removes the entry from localStorage“), Fehler ohne
-Wiederholungsmöglichkeit und eine destruktive Aktion, die ohne Rückfrage alle
-Sicherheitscodes löschte.
+The interface was functionally bilingual but linguistically undecided: catalog
+values were glued into sentences in `app.js` (`" · scrolls"`, `{suffix}`), three
+registers alternated ("Load cameras", "Loading cameras …", "Waiting for the video
+stream"), and "browser storage" meant both transient RAM and `localStorage`.
+Implementation explanations replaced actions ("Reset removes the entry from
+localStorage"), errors offered no retry, and one destructive action deleted all
+security codes without asking.
 
-## Entscheidung
+## Decision
 
-### Vollständige Sätze
+### Whole sentences
 
-- Ein Katalogwert ist ein vollständiger Satz oder eine vollständige
-  Beschriftung. Satzteile werden nicht in JavaScript aneinandergehängt.
-- Daten dürfen Platzhalter füllen (`{count}`, `{channels}`, `{hub}`).
-  Listen formatiert der Client mit `Intl.ListFormat`, Zahlen und Zeiten mit
-  `Intl.NumberFormat`.
-- Die API liefert Maschinenwerte (`durationMs`, `uptimeSeconds`), keine
-  vorformatierten Zeichenketten.
+- A catalog value is a whole sentence or a whole label. Fragments are not
+  concatenated in JavaScript.
+- Data may fill placeholders (`{count}`, `{channels}`, `{hub}`). The client formats
+  lists with `Intl.ListFormat` and numbers and times with `Intl.NumberFormat`.
+- The API delivers machine values (`durationMs`, `uptimeSeconds`), not preformatted
+  strings.
 
-### Terminologie (DE/EN)
+### Terminology (DE/EN)
 
-| Begriff | Bedeutung | Verboten |
+| Term | Meaning | Avoid |
 |---|---|---|
-| Basisstation / base station | das Gerät im Netz | „Hub“ in sichtbaren Texten |
-| Kamera / camera | der gekoppelte Kanal | „Kanal“ für das Gerät |
-| Kanal / channel | die Nummer eines Eingangs | „Kamera“ für die Nummer |
-| Livebild / live view | das sichtbare Bild | „Stream“ für das Bild |
-| Stream / stream | der Transport (Start/Stop) | — |
-| Details / details | der Drawer | „Drawer“, „Seitenleiste“ in DE |
-| Live-Daten / live data | das Overlay auf der Kachel | „Metriken“ |
-| Arbeitsspeicher / memory | flüchtiger Browser-RAM | „Browserspeicher“ (mehrdeutig) |
+| Basisstation / base station | the device on the network | "Hub" in visible text |
+| Kamera / camera | the coupled channel | "Kanal" for the device |
+| Kanal / channel | the number of an input | "Kamera" for the number |
+| Livebild / live view | the visible picture | "Stream" for the picture |
+| Stream / stream | the transport (start/stop) | none |
+| Details / details | the drawer | "Drawer", "Seitenleiste" in German |
+| Live-Daten / live data | the overlay on the tile | "Metriken" |
+| Arbeitsspeicher / memory | transient browser RAM | "Browserspeicher" (ambiguous) |
 
-### Register und Ton
+### Register and tone
 
-- Deutsch durchgehend Du-Form.
-- Fortschrittsmeldungen stehen im Zustandspassiv oder als Infinitiv
-  („Kameras werden geladen …“, „Videostream wird vorbereitet …“), nicht als
-  Aufforderung an den Nutzer.
-- Keine Implementierungs-Disclaimer: kein `localStorage`, keine „Matrix“,
-  kein „Fallback“, keine „Optional“-Hinweise. Erklärt wird die Handlung oder
-  der Nutzen, nicht der Code.
-- Fehlermeldungen enden nicht in einer Sackgasse: Wenn eine Wiederholung
-  möglich ist, bietet die Meldung „Erneut versuchen“ an.
+- German uses the informal "Du" throughout.
+- Progress messages use the state passive or an infinitive ("Kameras werden geladen
+  …", "Videostream wird vorbereitet …"), not an imperative aimed at the user.
+- No implementation disclaimers: no `localStorage`, no "matrix", no "fallback", no
+  "optional" hints. Explain the action or the benefit, not the code.
+- Error messages do not end in a dead end. When a retry is possible, the message
+  offers "Erneut versuchen".
 
-### Destruktive Aktionen
+### Destructive actions
 
-- „Alle Sicherheitscodes entfernen“ benötigt zwei Klicks: Der erste armiert
-  die Aktion und ändert die Beschriftung („Wirklich alle Codes entfernen?“),
-  der zweite führt sie aus. Nach vier Sekunden fällt der Knopf zurück.
-- Kein modaler Bestätigungsdialog; der zweite Klick ist die Bestätigung.
+- "Remove all security codes" needs two clicks: the first arms the action and
+  changes the label ("Remove all codes for real?"), the second executes it. After
+  four seconds the button falls back.
+- No modal confirmation dialog; the second click is the confirmation.
 
-### Gerätecode
+### Device code
 
-- Herkunft und Speicherung des Sicherheitscodes auf der Basisstation sind
-  nicht Teil des Produkts. Die Oberfläche erklärt sie nicht; der Code wird
-  eingegeben, geprüft und wie in ADR-0012 beschrieben nur im Browser-RAM
-  gehalten.
+- The origin and storage of the security code on the base station are not part of
+  the product. The interface does not explain them; the code is entered, checked
+  and held in browser RAM only as ADR-0012 describes.
 
-### Codes und Passwortmanager
+### Codes and password managers
 
-- Das Code-Feld trägt `autocomplete="off"`, damit kein Passwortmanager den
-  Gerätecode persistiert (ADR-0012, ADR-0025).
+- The code field carries `autocomplete="off"` so no password manager persists the
+  device code (ADR-0012, ADR-0025).
 
-## Begründung
+## Reasoning
 
-- Ein vollständiger Satz pro Schlüssel ist die einzige Form, die sich
-  übersetzen lässt, ohne Wortstellung zu raten.
-- Ein Glossar verhindert, dass dieselbe Fläche fünf Namen bekommt
-  („Wand“, „Live-Wand“, „Wandsteuerung“, „Wand-Einstellungen“,
-  „Wand-Einrichtung“).
-- Maschinenwerte aus der API halten Formatierung und Sprache an einer Stelle.
-- Die Zwei-Klick-Bestätigung schützt vor Datenverlust, ohne einen weiteren
-  Dialog zu öffnen.
+- One whole sentence per key is the only form that translates without guessing word
+  order.
+- A glossary prevents the same area from getting five names ("Wand", "Live-Wand",
+  "Wandsteuerung", "Wand-Einstellungen", "Wand-Einrichtung").
+- Machine values from the API keep formatting and language in one place.
+- The two-click confirmation protects against data loss without opening another
+  dialog.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Fragmente im Katalog belassen und in JS zusammensetzen:** sprachabhängig
-  falsch (Wortstellung, Klammern, Aufzählungszeichen) und von den
-  Katalogtests nicht erfassbar. Verworfen.
-- **Zeit- und Zahlformate im Go-Server erzeugen:** würde die API an eine
-  Sprache binden und ADR-0021 widersprechen. Verworfen.
-- **Höflichkeitsform („Sie“) im Deutschen:** inkonsistent mit der bereits
-  ausgelieferten Du-Form und für ein Heimnetzwerk-Gerät zu distanziert.
-  Verworfen.
-- **Modaler Bestätigungsdialog vor dem Löschen:** zusätzliche Ebene für eine
-  reversible Handlung (Codes lassen sich neu eingeben). Verworfen.
+- **Keep fragments in the catalog and assemble them in JS:** wrong across languages
+  (word order, brackets, list separators) and invisible to the catalog tests.
+  Rejected.
+- **Build time and number formats in the Go server:** would bind the API to one
+  language and contradict ADR-0021. Rejected.
+- **Formal "Sie" in German:** inconsistent with the shipped "Du" form and too
+  distant for a home network device. Rejected.
+- **Modal confirmation dialog before deletion:** an extra layer for a reversible
+  action (codes can be entered again). Rejected.
 
-## Konsequenzen
+## Consequences
 
-- `web/locales/{en,de}.json` enthält keine Fragmentwerte mehr;
-  `TestLocaleValuesAreWholePhrases` prüft das.
-- `web/app.js` formatiert Listen, Millisekunden und Laufzeiten; die API
-  liefert `durationMs` und `uptimeSeconds` (OpenAPI, `specs/api.md`).
-- Der Hub-Manager und die Diagnose teilen sich denselben
-  Zwei-Klick-Mechanismus; der Playwright-Test der Credentials-Suite deckt ihn
-  ab.
-- Gesperrte Aktionen (Motion, Discovery, „Basisstation hinzufügen“) tragen
-  einen `title` mit dem Grund.
-- Neue Texte werden gegen das Glossar geschrieben; Abweichungen benötigen
-  eine Änderung an diesem ADR.
+- `web/locales/{en,de}.json` no longer holds fragment values;
+  `TestLocaleValuesAreWholePhrases` checks that.
+- `web/app.js` formats lists, milliseconds and uptimes; the API delivers
+  `durationMs` and `uptimeSeconds` (OpenAPI, `specs/api.md`).
+- The hub manager and diagnostics share the same two-click mechanism; the
+  credentials Playwright suite covers it.
+- Locked actions (motion, discovery, "Add base station") carry a `title` with the
+  reason.
+- New copy follows the glossary; deviations need a change to this ADR.
 
-## Verweise
+## References
 
-- ADR-0012/ADR-0025: Code nur im Browser-RAM
-- ADR-0014: nur verfügbare Metadaten
-- ADR-0021: zweisprachige UI
-- ADR-0029: Design-Tokens
+- ADR-0012/ADR-0025: Code in browser RAM only
+- ADR-0014: Only available metadata
+- ADR-0021: Bilingual UI
+- ADR-0029: Design tokens
 - `web/locales/`, `web/app.js`, `web/i18n.js`
 - `specs/product.md`, `specs/api.md`, `specs/testing.md`

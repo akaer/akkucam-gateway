@@ -1,112 +1,109 @@
-# ADR-0031: Live-Daten-Overlay und Sichtbarkeitseinstellung
+# ADR-0031: Live data overlay and visibility setting
 
 - Status: Accepted
-- Datum: 2026-11-24
+- Date: 2026-11-24
 
-## Kontext
+## Context
 
-Die Live-Metriken lagen hinter einem Popover, das nur laufende Streams über
-einen Knopf „Live-Daten“ öffneten (ADR-0027). In der Praxis wurde es kaum
-gefunden, und die Bitrate in Mbit/s mit einer Nachkommastelle war zu grob: Bei
-einem Nutzdatenstrom zwischen etwa 0,1 und 1,5 Mbit/s sprang die Anzeige
-zwischen „0 Mbit/s“ und „1,5 Mbit/s“ und verlor jede Auflösung.
+Live metrics sat behind a popover that only running streams opened with a "Live
+data" button (ADR-0027). In practice people rarely found it, and the bitrate in
+Mbit/s with one decimal was too coarse: for a payload stream between roughly 0.1
+and 1.5 Mbit/s the display jumped between "0 Mbit/s" and "1.5 Mbit/s" and lost all
+resolution.
 
-Gleichzeitig stand auf jeder Kachel im Videobereich ein Pill mit Modell und
-DID-Kürzel (`SMH-T1R · LYHFC`). Bei mehreren Kameras derselben Basisstation
-wiederholte er sich auf jeder Kachel und konkurrierte mit Kanalnummer und
-Kameranamen.
+At the same time every tile in the video area carried a pill with model and DID
+label (`SMH-T1R · LYHFC`). With several cameras on the same base station it
+repeated on every tile and competed with channel number and camera name.
 
-ADR-0027 hatte dauerhaft sichtbare Metriken ausdrücklich verworfen, weil sie
-ADR-0015 widersprechen und Videofläche kosten. Diese Entscheidung wird hier
-bewusst revidiert: Eine einzelne Textzeile kostet wenig Fläche und ersetzt
-einen zusätzlichen Bedienschritt.
+ADR-0027 had explicitly rejected permanently visible metrics because they
+contradict ADR-0015 and cost video area. This decision revises that deliberately:
+one line of text costs little area and replaces an extra interaction step.
 
-## Entscheidung
+## Decision
 
-### Kachelinhalt
+### Tile content
 
-- In **Auto** und **Fokus** zeigt die Kachel im Video nur noch Kanalnummer,
-  Kameranamen und Status. Das Hub-Kürzel entfällt, auch im Fokus-Streifen.
-- **Komfort** behält die Zeile mit dem Hub-Kürzel unter dem Kameranamen, weil
-  sie außerhalb des Videobereichs liegt.
-- Das `aria-label` der Kachel nennt weiterhin Kamera und Basisstation.
+- In **auto** and **focus**, the tile video shows only channel number, camera name
+  and status. The hub label is gone, including from the focus strip.
+- **Comfort** keeps the row with the hub label below the camera name because it sits
+  outside the video area.
+- The tile `aria-label` still names camera and base station.
 
 ### Overlay
 
-- Laufende Streams zeigen unten links ein dezentes Overlay:
+- Running streams show a subtle overlay in the bottom left:
   `412 kbit/s · 25 fps · 87 %`.
-- Angezeigt werden nur vorhandene Werte; fehlt ein Wert, entfällt sein
-  Segment. Ohne Messwerte bleibt das Overlay leer.
-- Die Laufzeit bleibt ausschließlich im Details-Drawer. Der Drawer zeigt
-  weiterhin Bitrate, FPS, Akku (inklusive Ladezustand) und Laufzeit.
-- Die Bitrate wird überall in `kbit/s` dargestellt, auch oberhalb von 1000
-  (`1480 kbit/s`). Es gibt keinen Einheitenwechsel.
-- Das Overlay ist `aria-hidden` und `pointer-events: none`: Es ist Dekoration
-  über dem Video, die zugängliche Quelle bleibt der Drawer. Klicks auf die
-  Kachel öffnen weiterhin die Details.
-- Aktualisierung: `updateStreamStatus` schreibt einmal pro Sekunde den Text;
-  es wird kein Markup neu erzeugt.
-- Optik: 11 px, weiße Schrift, tabellarische Ziffern, 22 px hoch und damit
-  auf einer Linie mit dem Vollbild-Knopf. Hinter dem Text liegt eine zu 55 %
-  schwarze Fläche mit 6 px Radius. Sie ist nötig, weil Kameraszenen beliebig
-  hell sein können: Auf reinem Weiß ergibt das noch 4,5:1, mit reinem
-  Textschatten wären es unter 2:1. Die Fläche bleibt auf die Textbreite
-  begrenzt und verschwindet, solange keine Werte vorliegen (`:empty`).
+- Only available values appear; if a value is missing, its segment is dropped. With
+  no readings the overlay stays empty.
+- Uptime stays in the details drawer only. The drawer still shows bitrate, FPS,
+  battery (including charging state) and uptime.
+- Bitrate appears everywhere in `kbit/s`, including above 1000 (`1480 kbit/s`).
+  There is no unit switch.
+- The overlay is `aria-hidden` and `pointer-events: none`: it is decoration over the
+  video, and the accessible source remains the drawer. Clicks on the tile still open
+  the details.
+- Update: `updateStreamStatus` writes the text once per second; no markup is
+  recreated.
+- Look: 11 px, white text, tabular figures, 22 px high and therefore in line with
+  the fullscreen button. Behind the text sits a 55 % black surface with a 6 px
+  radius. It is necessary because camera scenes can be arbitrarily bright: on pure
+  white the text still reaches 4.5:1, while a pure text shadow would fall below
+  2:1. The surface stays limited to the text width and disappears while no values
+  are present (`:empty`).
 
-### Sichtbarkeit
+### Visibility
 
-- Die Wand-Einstellungen (Zahnrad, auch im mobilen Sheet) bekommen einen
-  Schalter „Live-Daten auf Kacheln“. Standard ist **an**.
-- Persistenz als vierte UI-Präferenz `localStorage['akkucam-wall-metrics']`.
-  Gespeichert wird nur `off`; ein fehlender Eintrag bedeutet an.
-- „Auf Standard zurücksetzen“ setzt Ansicht **und** Overlay zurück.
-- Der Schalter wirkt sofort über eine Body-Klasse; es wird kein Stream und
-  kein Videoelement angefasst.
+- The wall settings (gear, also in the mobile sheet) get a "Live data on tiles"
+  switch. The default is **on**.
+- Persistence as the fourth UI preference `localStorage['akkucam-wall-metrics']`.
+  Only `off` is stored; a missing entry means on.
+- "Reset to default" resets the view **and** the overlay.
+- The switch takes effect immediately through a body class; no stream and no video
+  element is touched.
 
-## Begründung
+## Reasoning
 
-- kbit/s liefert die Auflösung, die Mbit/s mit einer Nachkommastelle fehlt.
-- Eine Zeile am unteren Rand ist schneller erfassbar als ein Popover und
-  verdeckt bei 16:9-Kacheln keinen relevanten Bildinhalt; die kleine Fläche
-  dahinter stellt den Kontrast unabhängig vom Bildinhalt sicher.
-- Der Hub steht weiterhin im Drawer, im Filterchip und in der Komfort-Ansicht;
-  innerhalb des Videos ist er bei einer Kamera pro Hub reine Wiederholung.
-- Ein Schalter erhält die Wahlfreiheit, die ADR-0015 schützen wollte, ohne
-  allen Nutzern die Metriken vorzuenthalten.
+- kbit/s provides the resolution that Mbit/s with one decimal lacks.
+- One line at the bottom edge is faster to grasp than a popover and hides no
+  relevant picture content on 16:9 tiles; the small surface behind it guarantees
+  contrast independent of the picture.
+- The hub still appears in the drawer, the filter chip and the comfort view; inside
+  the video it is pure repetition with one camera per hub.
+- A switch preserves the choice that ADR-0015 wanted to protect without withholding
+  metrics from everyone.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Mbit/s mit zwei Nachkommastellen:** löst die Sprünge, bleibt aber eine
-  unhandliche Einheit für einen Strom unter 2 Mbit/s. Verworfen.
-- **Popover behalten und nur die Einheit ändern:** behebt das Auffinden nicht.
-  Verworfen.
-- **Overlay immer an, ohne Schalter:** einfacher, nimmt aber die in ADR-0015
-  dokumentierte Präferenz für ein ruhiges Videobild ernst. Verworfen.
-- **Schalter je Ansicht:** drei Zustände für eine Eigenschaft, die nichts mit
-  dem Layout zu tun hat. Verworfen.
-- **Overlay oben rechts neben dem Status:** kollidiert mit dem Status-Pill und
-  dem Bildinhalt; unten links ist die ruhigste Ecke. Verworfen.
+- **Mbit/s with two decimals:** fixes the jumps but remains an awkward unit for a
+  stream below 2 Mbit/s. Rejected.
+- **Keep the popover and change only the unit:** does not fix discoverability.
+  Rejected.
+- **Overlay always on, no switch:** simpler, but ignores the preference for a calm
+  video picture documented in ADR-0015. Rejected.
+- **Switch per view:** three states for a property unrelated to layout. Rejected.
+- **Overlay top right next to the status:** collides with the status pill and the
+  picture content; bottom left is the calmest corner. Rejected.
 
-## Konsequenzen
+## Consequences
 
-- ADR-0015 gilt für die Wand nur noch eingeschränkt (Status: `Partially
-  superseded`); der Drawer bleibt der progressive Weg.
-- Der Popover-Abschnitt in ADR-0027 ist ersetzt: kein `#metrics-popover`, kein
-  Trigger, kein Klick-Guard, kein Fokus-Handling.
-- `web/AGENTS.md` erlaubt vier Storage-Keys statt drei.
-- Neue Katalogschlüssel: `camera.metric.kbpsValue`, `settings.liveData`,
-  `settings.liveDataHint`; entfernt: `camera.liveDataClose`,
+- ADR-0015 applies to the wall only in part (status: `Partially superseded`); the
+  drawer remains the progressive path.
+- The popover section in ADR-0027 is replaced: no `#metrics-popover`, no trigger, no
+  click guard, no focus handling.
+- `web/AGENTS.md` allows four storage keys instead of three.
+- New catalog keys: `camera.metric.kbpsValue`, `settings.liveData`,
+  `settings.liveDataHint`; removed: `camera.liveDataClose`,
   `camera.metricsPending`, `camera.metric.mbpsValue`.
-- Playwright: Overlay-Inhalt, Klick auf das Overlay öffnet den Drawer,
-  Hub-Kürzel nur in Komfort, Schalter inklusive Reset.
-- `product.md`, `architecture.md` und `testing.md` werden mitgezogen.
+- Playwright: overlay content, click on the overlay opens the drawer, hub label only
+  in comfort, switch including reset.
+- `product.md`, `architecture.md` and `testing.md` are updated with it.
 
-## Verweise
+## References
 
-- ADR-0014: nur verfügbare Metadaten
-- ADR-0015: progressive Offenlegung (teilweise ersetzt)
-- ADR-0021: zweisprachige UI
-- ADR-0027: Live-Wand (Popover-Abschnitt ersetzt)
-- ADR-0028: Terminologie
-- ADR-0030: Barrierefreiheit
+- ADR-0014: Only available metadata
+- ADR-0015: Progressive disclosure (partially replaced)
+- ADR-0021: Bilingual UI
+- ADR-0027: Live wall (popover section replaced)
+- ADR-0028: Terminology
+- ADR-0030: Accessibility
 - `web/app.js`, `web/index.html`, `web/style.css`, `web/locales/`
