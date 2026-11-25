@@ -307,9 +307,9 @@ test.describe('live wall', () => {
     const tile = page.locator('.camera-tile').first();
     const overlay = tile.locator('.tile-metrics');
 
-    // Assert: kbit/s instead of the coarse Mbit/s, plus fps and battery
+    // Assert: KB/s instead of the coarse Mbit/s, plus fps and battery
     await expect(overlay).toBeVisible();
-    await expect(overlay).toContainText('kbit/s');
+    await expect(overlay).toContainText('KB/s');
     await expect(overlay).toContainText('25 fps');
     await expect(overlay).toContainText('87 %');
     await expect(overlay).not.toContainText('Mbit/s');
@@ -320,7 +320,7 @@ test.describe('live wall', () => {
 
     // Assert: the overlay is decorative and the drawer opens
     await expect(page.locator('#details-dialog')).toHaveJSProperty('open', true);
-    await expect(page.locator('#details-dialog .detail-grid').last()).toContainText('kbit/s');
+    await expect(page.locator('#details-dialog .detail-grid').last()).toContainText('KB/s');
   });
 
   test('hides the hub label inside the video in auto and focus', async ({ page }) => {

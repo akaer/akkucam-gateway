@@ -103,7 +103,7 @@ Never store credentials or any device data. Codes live in the in-memory
 - Auto and Focus show only channel number, name and status inside the video.
   The hub short label lives in Comfort's header and in the filter chips; do
   not put it back into the video overlay.
-- Running streams show `kbit/s · fps · battery %` as a permanent overlay in
+- Running streams show `KB/s · fps · battery %` as a permanent overlay in
   the tile's bottom-left corner. It is `aria-hidden`, `pointer-events: none`
   and updated via `textContent` once per second. The drawer keeps the full
   metrics including uptime. `akkucam-wall-metrics=off` hides the overlay

@@ -114,7 +114,7 @@ transfer.
   theme)
 - details drawer per camera (right on desktop, bottom sheet on mobile) with
   quality, motion, start/stop and metadata
-- live data overlay for running streams (kbit/s, FPS, battery); available values
+- live data overlay for running streams (KB/s, FPS, battery); available values
   only, switchable in the settings
 - live thumbnails in the focus strip from the existing video elements
 - compact iPhone wall bar with filter pill, global start/stop and menu sheet
@@ -122,7 +122,7 @@ transfer.
 - selected wall view and overlay visibility in localStorage, with "Reset to
   default"
 - bitrate of the H.264 payload stream in the details drawer and the live data
-  overlay (kbit/s)
+  overlay (KB/s)
 - battery capacity in the live data overlay; charging state additionally in the
   details drawer
 - start, status and stop over the HTTP API
