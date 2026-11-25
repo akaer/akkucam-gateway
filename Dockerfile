@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux go test ./... && \
       -ldflags="-s -w -X akkucam-gateway/internal/version.commit=${COMMIT}" \
       -o /out/akkucam-gateway ./cmd/gateway
 
-FROM alpine:3.21
+FROM alpine:3.24
 LABEL org.opencontainers.image.title="AkkuCam Gateway" \
       org.opencontainers.image.description="Local gateway for AkkuCam base stations" \
       org.opencontainers.image.source="https://github.com/akaer/akkucam-gateway" \
