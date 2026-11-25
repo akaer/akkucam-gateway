@@ -19,6 +19,37 @@ CI must be green before merging: static analysis, Go vet, unit and integration
 tests, race detector, image build with SBOM, and the Playwright suites. UI
 changes need a Playwright check in both browsers.
 
+## Commit messages
+
+Subject in imperative English, at most 72 characters, no trailing period. The
+body explains why the change exists, wrapped at 72 characters, and names the
+ADR or spec it implements. One commit carries one change; bundling unrelated
+edits is not allowed.
+
+Every commit, including documentation-only ones, lists the agent that wrote it
+as co-author with harness and model:
+
+```text
+Co-authored-by: opencode (<model>) <noreply@opencode.ai>
+```
+
+For example:
+
+```text
+Add static analysis gate and bump Go to 1.27.4
+
+Go 1.23 no longer receives fixes; govulncheck reported 32 reachable
+standard library CVEs through net/http.ListenAndServe.
+
+The analysis runs in pinned containers so NixOS and CI share one
+toolchain (ADR-0033).
+
+Co-authored-by: opencode (DeepSeek V4.1 Flash 1017) <noreply@opencode.ai>
+```
+
+The trailer survives rebases and amends: rewriting a commit keeps the
+co-author line of the agent that authored the change.
+
 ## Versioning
 
 The project follows [Semantic Versioning 2.0.0](https://semver.org/) and starts

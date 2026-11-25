@@ -116,7 +116,7 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
 ## Pointers
 
 - `specs/README.md` — document types and maintenance rules
-- `CONTRIBUTING.md` — branch, pull request and release workflow
+- `CONTRIBUTING.md` — branch, pull request, commit message and release workflow
 - `specs/adrs/README.md` — ADR index with status
 - `specs/testing.md` — test strategy, hardware runs
 - `tests/README.md` — Go test layout and naming
