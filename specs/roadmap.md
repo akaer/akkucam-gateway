@@ -20,8 +20,7 @@
 
 ### Usability
 
-- high-resolution stills or a snapshot endpoint (the focus strip now uses live
-  thumbnails from the video streams)
+- high-resolution stills or a snapshot endpoint
 - access to recordings the base station produces (motion detection active, SD card
   present)
 - better error status for an empty or disabled channel
