@@ -24,7 +24,7 @@ Die gerätespezifischen Felder, Batteriekommandos, Qualitätsmodi und das getest
 - `web/icon-light.svg`, `web/icon-dark.svg`, Kamera-Icon aus Font Awesome Free 6.7.2 (Solid); Lizenz in `web/FONTAWESOME-LICENSE.txt` (Icons: CC BY 4.0)
 - `web/fonts/inter-tight-latin.woff2`, `web/fonts/inter-tight-bold-latin.woff2`, Inter Tight (Regular 400 und Bold 700) von Google Fonts; Lizenz in `web/INTERTIGHT-LICENSE.txt` (SIL Open Font License 1.1)
 - `web/swagger/*`, Swagger UI; Lizenz in `web/swagger/LICENSE` (Apache-2.0)
-- FFmpeg aus Alpine Linux wird im Runtime-Image installiert; Lizenz GPL-2.0-or-later (Paket `ffmpeg` in Alpine 3.21)
+- FFmpeg aus Alpine Linux wird im Runtime-Image installiert; Lizenz GPL-2.0-or-later (Paket `ffmpeg` in Alpine 3.24)
 - Alpine-Linux-Basissystem im Runtime-Image; Paketlizenzen siehe SBOM
 - Go-Standardbibliothek im statisch gelinkten Gateway-Binary; Lizenz BSD-3-Clause
 
