@@ -156,7 +156,7 @@ The protocol was reconstructed from observed network traffic and experiments on 
 
 ABUS and AkkuCam are trademarks of their respective owners. This project is independent and neither supported by nor affiliated with the manufacturer.
 
-Bug reports are welcome, but keep real security codes, DIDs and local IPs out of them.
+Bug reports are welcome in the [issue tracker](https://github.com/akaer/akkucam-gateway/issues); keep real security codes, DIDs and local IPs out of them. Security issues go through the process in [`SECURITY.md`](SECURITY.md).
 
 ## Documentation
 

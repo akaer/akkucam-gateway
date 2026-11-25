@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a change in behavior or a new capability
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you propose
+      options:
+        - label: I checked the open issues and the roadmap in specs/roadmap.md.
+          required: true
+        - label: The proposal stays within the LAN-only, cloud-free scope.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing or inconvenient today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the gateway do instead?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What else did you consider?
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Screenshots, protocol notes or hardware details
+    validations:
+      required: false
