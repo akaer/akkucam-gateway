@@ -177,4 +177,4 @@ Fehlerberichte sind willkommen im [Issue-Tracker](https://github.com/akaer/akkuc
 
 ## Dokumentation
 
-Architektur, Protokoll, API, Sicherheit, Teststrategie, Roadmap und ADRs: [`specs/README.md`](specs/README.md).
+Architektur, Protokoll, API, Sicherheit, Teststrategie, Roadmap und ADRs: [`specs/README.md`](specs/README.md). Die Dokumente sind auf Englisch.

@@ -7,7 +7,8 @@ serves the dashboard from the same binary.
 
 Sources of truth: `specs/` for behavior and contracts (`specs/README.md` is the
 index, `specs/adrs/README.md` the ADR index with status), `web/AGENTS.md` for
-frontend rules, `tests/README.md` for test layout.
+frontend rules, `tests/README.md` for test layout. `specs/` is written in
+English (ADR-0034).
 
 ## Hard rules
 
