@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="text-scale" content="scale">
+  <meta name="color-scheme" content="light dark">
+  <title>AkkuCam Gateway</title>
+  <link id="favicon" rel="icon" type="image/svg+xml" href="/icon-light.svg">
+  <script>
+    (() => {
+      const supported = ['en', 'de'];
+      const query = new URLSearchParams(location.search).get('lang');
+      let lang = query && supported.includes(query.toLowerCase()) ? query.toLowerCase() : null;
+      if (!lang) {
+        try {
+          const stored = localStorage.getItem('akkucam-lang');
+          if (stored && supported.includes(stored)) lang = stored;
+        } catch {
+          // Storage may be unavailable; fall through to the browser preference.
+        }
+      }
+      if (!lang) {
+        const languages = navigator.languages && navigator.languages.length
+          ? navigator.languages
+          : [navigator.language || ''];
+        lang = languages.some((item) => String(item).toLowerCase().startsWith('de')) ? 'de' : 'en';
+      }
+      document.documentElement.lang = lang;
+      document.documentElement.dataset.lang = lang;
+
+      // No stored value means "follow the system": no data-theme attribute, so
+      // the prefers-color-scheme tokens apply (ADR-0013).
+      const theme = (() => {
+        try {
+          const stored = localStorage.getItem('akkucam-theme');
+          return stored === 'light' || stored === 'dark' ? stored : null;
+        } catch {
+          return null;
+        }
+      })();
+      if (theme) document.documentElement.dataset.theme = theme;
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme || 'light dark';
+
+      // The favicon mirrors the rendered theme: the light tile uses the light
+      // Nord accent, the dark tile uses the dark accent. Both files contain the
+      // same Font Awesome camera glyph.
+      const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const favicon = document.getElementById('favicon');
+      if (favicon) {
+        favicon.href = (theme || (dark ? 'dark' : 'light')) === 'dark'
+          ? '/icon-dark.svg'
+          : '/icon-light.svg';
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="setup-active">
+  <!--
+    One icon set for the whole dashboard (ADR-0029): inline SVG on a 24 px
+    grid, coloured with currentColor. No icon font, no CDN, no text glyphs.
+    The camera glyph is Font Awesome Free 6.7.2 (solid/camera), CC BY 4.0;
+    its licence is listed in the licence dialog and web/FONTAWESOME-LICENSE.txt.
+  -->
+  <svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="icon-camera" viewBox="0 0 512 512">
+      <path d="M149.1 64.8L138.7 96 64 96C28.7 96 0 124.7 0 160L0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64l-74.7 0L362.9 64.8C356.4 45.2 338.1 32 317.4 32L194.6 32c-20.7 0-39 13.2-45.5 32.8zM256 192a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/>
+    </symbol>
+    <symbol id="icon-theme" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24">
+      <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-more" viewBox="0 0 24 24">
+      <circle cx="6" cy="12" r="1.6" fill="currentColor"/>
+      <circle cx="12" cy="12" r="1.6" fill="currentColor"/>
+      <circle cx="18" cy="12" r="1.6" fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24">
+      <path d="M8 5.5v13l11-6.5z" fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-stop" viewBox="0 0 24 24">
+      <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="icon-expand" viewBox="0 0 24 24">
+      <path d="M9 4H4v5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24">
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="icon-eye-off" viewBox="0 0 24 24">
+      <path d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M9.9 5.7A9.8 9.8 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3.3 4.1M6.4 7.2A16.6 16.6 0 0 0 2.5 12S6 18.5 12 18.5c1 0 1.9-.2 2.8-.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M10.2 10.2a2.5 2.5 0 0 0 3.6 3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24">
+      <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="7.8" r="1.4" fill="currentColor"/>
+      <path d="M12 11.2v5.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.15.37.5.66.9.82.2.08.4.12.6.12H21a2 2 0 1 1 0 4h-.09c-.2 0-.4.04-.6.12-.4.16-.75.45-.9.82z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+  </svg>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="AkkuCam Gateway home" data-i18n-aria-label="brand.home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg focusable="false"><use href="#icon-camera"></use></svg>
+      </span>
+      <span><strong data-i18n="brand.name">AkkuCam</strong><small data-i18n="brand.tagline">Local Gateway</small></span>
+    </a>
+    <div class="topbar-actions">
+      <select id="language-select" class="language-select" aria-label="Language" data-i18n-aria-label="language.label">
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <button id="theme-toggle" class="icon-button" type="button" title="Switch to light theme" aria-label="Switch to light theme" data-i18n-title="theme.toLight" data-i18n-aria-label="theme.toLight">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-theme"></use></svg>
+      </button>
+      <button id="help-toggle" class="icon-button" type="button" title="Help" aria-label="Help" data-i18n-title="help.open" data-i18n-aria-label="help.open">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-help"></use></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" role="status" aria-live="polite">
+    <span class="notice-dot" aria-hidden="true"></span><span class="notice-text" data-i18n="notice.ready">Ready.</span><button id="notice-action" class="text-button" type="button" data-i18n="action.retry" hidden>Retry</button>
+  </div>
+
+  <main id="setup-section" class="setup-shell">
+    <section class="setup-toolbar" aria-label="Setup controls" data-i18n-aria-label="setup.controlsLabel">
+      <div class="setup-heading">
+        <h1 data-i18n="hub.choose">Set up a base station</h1>
+      </div>
+      <div class="setup-actions">
+        <button id="back-to-wall" class="secondary" type="button" data-i18n="wall.backToWall" hidden>Back to live wall</button>
+        <button id="discover" class="primary" type="button" data-i18n="action.discover">Discover base stations</button>
+      </div>
+    </section>
+
+    <div id="setup-canvas" class="setup-canvas">
+      <div id="setup-empty" class="setup-empty">
+        <span class="setup-empty-icon" aria-hidden="true">
+          <svg focusable="false"><use href="#icon-camera"></use></svg>
+        </span>
+        <h3 data-i18n="setup.emptyTitle">No base station loaded</h3>
+        <p data-i18n="setup.emptyHint">The base station must be powered on and on the same network as this gateway.</p>
+      </div>
+
+      <section id="hubs-section" hidden>
+        <div id="hubs" class="hub-grid"></div>
+      </section>
+
+      <details id="diagnostics" class="diagnostics">
+        <summary>
+          <span><strong data-i18n="diagnostics.title">Diagnostics</strong><small data-i18n="diagnostics.hint">DIDs, addresses and manual channel fallback</small></span>
+          <svg class="chevron icon icon-sm" aria-hidden="true" focusable="false"><use href="#icon-chevron"></use></svg>
+        </summary>
+        <div class="diagnostics-body">
+          <div id="diagnostic-devices" class="diagnostic-list"><p class="muted" data-i18n="diagnostics.empty">No devices found.</p></div>
+          <div id="manual-fallback" class="manual-fallback" hidden>
+            <h3 data-i18n="diagnostics.manualTitle">Add channels manually</h3>
+            <p data-i18n="diagnostics.manualHint">Only use this if the base station does not return a camera list.</p>
+            <div class="manual-buttons">
+              <button type="button" data-manual-channel="0" data-i18n="diagnostics.channel" data-i18n-params='{"index":1}'>Channel 1</button>
+              <button type="button" data-manual-channel="1" data-i18n="diagnostics.channel" data-i18n-params='{"index":2}'>Channel 2</button>
+              <button type="button" data-manual-channel="2" data-i18n="diagnostics.channel" data-i18n-params='{"index":3}'>Channel 3</button>
+              <button type="button" data-manual-channel="3" data-i18n="diagnostics.channel" data-i18n-params='{"index":4}'>Channel 4</button>
+            </div>
+          </div>
+          <button id="forget-code" class="text-button" type="button" data-i18n="diagnostics.forgetCode">Remove all security codes from browser memory</button>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <main id="wall-section" class="wall-shell" hidden>
+    <h1 id="wall-heading" class="visually-hidden" data-i18n="wall.title">Live wall</h1>
+    <section class="wall-toolbar" aria-label="Wall controls" data-i18n-aria-label="wall.controlsLabel">
+      <div class="hub-filters" id="hub-filters" role="group" aria-label="Filter base stations" data-i18n-aria-label="wall.filterLabel"></div>
+      <div class="toolbar-actions">
+        <button id="start-all-hubs" class="primary small" type="button" data-i18n="workspace.startAllHubs">Start all base stations</button>
+        <button id="stop-all-hubs" class="secondary small" type="button" data-i18n="workspace.stopAllHubs">Stop all base stations</button>
+        <div class="view-switch" role="group" aria-label="View" data-i18n-aria-label="view.label">
+          <button type="button" data-view="auto" aria-pressed="true" data-i18n="view.auto">Auto</button>
+          <button type="button" data-view="focus" aria-pressed="false" data-i18n="view.focus">Focus</button>
+          <button type="button" data-view="comfort" aria-pressed="false" data-i18n="view.comfort">Comfort</button>
+        </div>
+        <button id="manage-hubs" class="secondary small" type="button" data-i18n="wall.manageHubs">Base stations</button>
+        <button id="wall-settings" class="icon-button" type="button" title="Wall settings" aria-label="Wall settings" data-i18n-title="settings.title" data-i18n-aria-label="settings.title">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-settings"></use></svg>
+        </button>
+      </div>
+    </section>
+
+    <section class="mobile-wall-bar" id="mobile-wall-bar" aria-label="Mobile wall controls" data-i18n-aria-label="wall.mobileControls">
+      <button id="mobile-filter-button" class="mobile-pill" type="button" aria-haspopup="dialog" aria-controls="mobile-wall-menu">
+        <span id="mobile-filter-label" data-i18n="wall.allHubs">All</span>
+        <span id="mobile-filter-count" class="mobile-count">0</span>
+      </button>
+      <button id="mobile-stream-button" class="mobile-action" type="button" aria-label="Start all streams" data-i18n-aria-label="wall.startAllStreams">
+        <svg id="mobile-stream-icon" class="icon icon-sm" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg>
+        <span id="mobile-stream-label" data-i18n="action.start">Start</span>
+      </button>
+      <button id="mobile-menu-button" class="icon-button mobile-menu-button" type="button" aria-label="Wall menu" data-i18n-aria-label="wall.mobileMenu" aria-haspopup="dialog" aria-controls="mobile-wall-menu"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-more"></use></svg></button>
+    </section>
+
+    <div class="wall-canvas" id="wall-canvas">
+      <div class="wall-grid" id="wall-grid"></div>
+      <div class="focus-layout" id="focus-layout" hidden>
+        <div class="focus-main" id="focus-main"></div>
+        <div class="focus-strip" id="focus-strip" aria-label="More cameras" data-i18n-aria-label="wall.moreCameras"></div>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="details-dialog" class="drawer" aria-labelledby="details-title" closedby="any">
+    <div class="dialog-body" id="details-body"></div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="modal" aria-labelledby="settings-title" closedby="any">
+    <div class="dialog-body">
+      <div class="dialog-head">
+        <div><h2 id="settings-title" data-i18n="settings.title">Wall settings</h2></div>
+        <button type="button" class="icon-button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      </div>
+      <fieldset class="view-options">
+        <legend data-i18n="view.label">View</legend>
+        <label class="view-option">
+          <input type="radio" name="wall-view" value="auto">
+          <span><strong data-i18n="view.auto">Auto</strong><small data-i18n="view.autoHint">Fills the screen with equal tiles sized from the camera count.</small></span>
+        </label>
+        <label class="view-option">
+          <input type="radio" name="wall-view" value="focus">
+          <span><strong data-i18n="view.focus">Focus</strong><small data-i18n="view.focusHint">One large camera, all others as a strip next to or below it.</small></span>
+        </label>
+        <label class="view-option">
+          <input type="radio" name="wall-view" value="comfort">
+          <span><strong data-i18n="view.comfort">Comfort</strong><small data-i18n="view.comfortHint">Every tile gets its own header and controls.</small></span>
+        </label>
+      </fieldset>
+      <label class="switch-row settings-switch">
+        <span><strong data-i18n="settings.liveData">Live data on tiles</strong><small data-i18n="settings.liveDataHint">Bitrate, FPS and battery of running streams.</small></span>
+        <span class="switch"><input id="settings-live-metrics" type="checkbox" checked><i aria-hidden="true"></i></span>
+      </label>
+      <p class="storage-note" id="settings-storage-note"></p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary" id="reset-wall-settings" data-i18n="settings.reset">Reset to default</button>
+        <button type="button" class="primary" data-close data-i18n="settings.done">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="hubs-dialog" class="modal" aria-labelledby="hubs-title" closedby="any">
+    <div class="dialog-body">
+      <div class="dialog-head">
+        <div><h2 id="hubs-title" data-i18n="wall.manageHubs">Base stations</h2></div>
+        <button type="button" class="icon-button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      </div>
+      <p class="muted" data-i18n="hubs.hint">Codes stay in browser memory until you reload the page. Start and stop each base station independently.</p>
+      <div id="hub-manager" class="hub-list"></div>
+      <button type="button" class="text-button hub-forget-all" id="forget-all-codes" data-i18n="diagnostics.forgetCode">Remove all security codes from browser memory</button>
+      <div class="dialog-actions">
+        <button type="button" class="primary" id="add-hub" data-i18n="hubs.add">Add base station</button>
+        <button type="button" class="secondary" data-close data-i18n="dialog.close">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="mobile-wall-menu" class="modal mobile-sheet" aria-labelledby="mobile-menu-title" closedby="any">
+    <div class="dialog-body">
+      <div class="dialog-head">
+        <div><h2 id="mobile-menu-title" data-i18n="wall.mobileTitle">Wall controls</h2></div>
+        <button type="button" class="icon-button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      </div>
+      <fieldset class="view-options">
+        <legend data-i18n="view.label">View</legend>
+        <div class="view-switch mobile-view-switch" role="group" aria-label="View" data-i18n-aria-label="view.label">
+          <button type="button" data-view="auto" aria-pressed="true" data-i18n="view.auto">Auto</button>
+          <button type="button" data-view="focus" aria-pressed="false" data-i18n="view.focus">Focus</button>
+          <button type="button" data-view="comfort" aria-pressed="false" data-i18n="view.comfort">Comfort</button>
+        </div>
+      </fieldset>
+      <div class="sheet-section">
+        <p class="sheet-label" data-i18n="wall.filterLabel">Base stations</p>
+        <div id="mobile-hub-filters" class="hub-filters mobile-filters" role="group" aria-label="Filter base stations" data-i18n-aria-label="wall.filterLabel"></div>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" class="primary" id="mobile-sheet-start" data-i18n="workspace.startAllHubs">Start all base stations</button>
+        <button type="button" class="secondary" id="mobile-sheet-stop" data-i18n="workspace.stopAllHubs">Stop all base stations</button>
+      </div>
+      <button type="button" class="secondary sheet-manage" id="mobile-manage-hubs" data-i18n="wall.manageHubs">Base stations</button>
+      <button type="button" class="secondary sheet-manage" id="mobile-settings" data-i18n="settings.title">Wall settings</button>
+    </div>
+  </dialog>
+
+  <dialog id="code-dialog" class="modal-dialog code-dialog" aria-labelledby="code-dialog-title">
+    <form method="dialog">
+      <button class="dialog-close" type="button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      <h2 id="code-dialog-title" data-i18n="dialog.title">Enter security code</h2>
+      <p id="code-dialog-hub" class="dialog-hub"></p>
+      <p data-i18n="dialog.hint">The code stays in browser memory for this base station until you reload or close this page.</p>
+      <label for="security-code" data-i18n="dialog.label">Device security code</label>
+      <div class="code-input">
+        <input id="security-code" type="password" autocomplete="off" required autofocus aria-describedby="code-visibility-warning">
+        <button id="code-visibility" class="icon-button code-visibility" type="button" aria-pressed="false" aria-label="Show security code" data-i18n-aria-label="dialog.showCode" aria-describedby="code-visibility-warning">
+          <svg class="icon icon-eye" aria-hidden="true" focusable="false"><use href="#icon-eye"></use></svg>
+          <svg class="icon icon-eye-off" aria-hidden="true" focusable="false"><use href="#icon-eye-off"></use></svg>
+        </button>
+      </div>
+      <span id="code-visibility-warning" class="visually-hidden" data-i18n="dialog.codeWarning">This displays the security code on screen.</span>
+      <div class="dialog-actions">
+        <button type="button" class="secondary" data-close data-i18n="dialog.cancel">Cancel</button>
+        <button id="code-submit" type="submit" value="ok" class="primary" data-i18n="dialog.ok">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="help-dialog" class="modal-dialog help-dialog" aria-labelledby="help-title">
+    <form method="dialog">
+      <button class="dialog-close" type="button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      <h2 id="help-title" data-i18n="help.title">How it works</h2>
+      <p data-i18n="help.text">Find a base station, open its cameras and start a live view without any cloud service.</p>
+      <p data-i18n="help.wallText">Once the first camera list is loaded, the live wall fills the screen. Switch between Auto, Focus and Comfort, filter by base station, and open a tile for details.</p>
+      <div class="dialog-actions">
+        <button type="button" class="secondary" id="open-licenses" data-i18n="licenses.open">Licenses</button>
+        <button type="submit" value="ok" class="primary" data-i18n="help.dismiss">Got it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="licenses-dialog" class="modal licenses-dialog" aria-labelledby="licenses-title" closedby="any">
+    <div class="dialog-body">
+      <div class="dialog-head">
+        <div><h2 id="licenses-title" data-i18n="licenses.heading">Licenses and third-party components</h2></div>
+        <button type="button" class="icon-button" data-close aria-label="Close" data-i18n-aria-label="dialog.close"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button>
+      </div>
+      <p class="license-intro" data-i18n="licenses.intro">This gateway is MIT-licensed. The following third-party components are shipped in the runtime image.</p>
+      <p class="license-project"><strong data-i18n="licenses.projectLicense">Project license: MIT</strong></p>
+      <h3 data-i18n="licenses.thirdPartyHeading">Third-party components</h3>
+      <div class="license-scroll">
+        <ul class="license-list">
+          <li data-component="hls">
+            <span class="license-name">hls.js <span class="license-version">1.5.18</span></span>
+            <span class="license-id">Apache-2.0</span>
+            <a href="/HLS-LICENSE.txt" target="_blank" rel="noopener" data-i18n="footer.licenseFile">License</a>
+          </li>
+          <li data-component="font-awesome">
+            <span class="license-name">Font Awesome Free</span>
+            <span class="license-id">CC BY 4.0</span>
+            <a href="/FONTAWESOME-LICENSE.txt" target="_blank" rel="noopener" data-i18n="footer.licenseFile">License</a>
+          </li>
+          <li data-component="inter-tight">
+            <span class="license-name">Inter Tight</span>
+            <span class="license-id">OFL-1.1</span>
+            <a href="/INTERTIGHT-LICENSE.txt" target="_blank" rel="noopener" data-i18n="footer.licenseFile">License</a>
+          </li>
+          <li data-component="swagger-ui">
+            <span class="license-name">Swagger UI</span>
+            <span class="license-id">Apache-2.0</span>
+            <a href="/swagger/LICENSE" target="_blank" rel="noopener" data-i18n="footer.licenseFile">License</a>
+          </li>
+          <li data-component="ffmpeg">
+            <span class="license-name">FFmpeg <span class="license-version">6.1.2</span></span>
+            <span class="license-id">GPL-2.0-or-later / LGPL-2.1-or-later</span>
+          </li>
+          <li data-component="alpine">
+            <span class="license-name">Alpine Linux <span class="license-version">3.21</span></span>
+            <span class="license-id" data-i18n="footer.license.various">Various</span>
+          </li>
+          <li data-component="go">
+            <span class="license-name">Go <span class="license-version">1.23</span></span>
+            <span class="license-id">BSD-3-Clause</span>
+          </li>
+        </ul>
+      </div>
+      <div class="dialog-actions">
+        <a class="secondary" href="/api/docs" target="_blank" rel="noopener" data-i18n="footer.apiDocs">API documentation</a>
+        <button type="button" class="primary" data-close data-i18n="dialog.close">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="stream-holder" class="stream-holder" aria-hidden="true"></div>
+
+  <script src="/hls.min.js"></script>
+  <script src="/i18n.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

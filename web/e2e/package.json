@@ -1,0 +1,18 @@
+{
+  "name": "akkucam-gateway-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end tests for the AkkuCam Gateway dashboard",
+  "scripts": {
+    "test": "playwright test",
+    "test:i18n": "playwright test --project=i18n",
+    "test:branding": "playwright test --project=branding",
+    "test:credentials": "playwright test --project=credentials",
+    "test:workspaces": "playwright test --project=workspaces",
+    "test:live": "playwright test --project=live",
+    "test:firefox": "playwright test --project=i18n-firefox --project=branding-firefox --project=credentials-firefox --project=workspaces-firefox --project=wall-firefox"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1"
+  }
+}

@@ -1,0 +1,810 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AkkuCam Local Gateway",
+    "version": "1.0.0",
+    "description": "Local-only HTTP API for AkkuCam base stations. The API never contacts a cloud service. The device security code is only held in memory for the duration of a request and is never persisted or logged."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current gateway origin"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Gateway is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/discover": {
+      "post": {
+        "summary": "Discover base stations on the LAN",
+        "operationId": "discover",
+        "description": "Runs WAI and PPCS discovery in parallel and merges results by IP address.",
+        "responses": {
+          "200": {
+            "description": "Discovery result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoverResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/session/probe": {
+      "post": {
+        "summary": "Probe a base station without authentication",
+        "operationId": "probeSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Probe result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "504": {
+            "$ref": "#/components/responses/UpstreamTimeout"
+          }
+        }
+      }
+    },
+    "/api/session/authenticate": {
+      "post": {
+        "summary": "Authenticate against a base station",
+        "operationId": "authenticateSession",
+        "description": "Authenticates with the device security code. The code is not persisted.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "504": {
+            "$ref": "#/components/responses/UpstreamTimeout"
+          }
+        }
+      }
+    },
+    "/api/channels": {
+      "post": {
+        "summary": "Read hub and camera inventory",
+        "operationId": "getChannels",
+        "description": "Authenticates and reads the coupled camera list. Fails with 409 while a stream is active.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hub and camera inventory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "504": {
+            "$ref": "#/components/responses/UpstreamTimeout"
+          }
+        }
+      }
+    },
+    "/api/motion": {
+      "post": {
+        "summary": "Enable or disable motion detection",
+        "operationId": "setMotion",
+        "description": "Reads the camera parameters, changes pirMode, writes them back and verifies the result. Fails with 409 while a stream is active.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MotionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated camera channel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CameraChannel"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "504": {
+            "$ref": "#/components/responses/UpstreamTimeout"
+          }
+        }
+      }
+    },
+    "/api/live/start": {
+      "post": {
+        "summary": "Start a live HLS stream",
+        "operationId": "startLive",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveStartRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stream started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          },
+          "504": {
+            "$ref": "#/components/responses/UpstreamTimeout"
+          }
+        }
+      }
+    },
+    "/api/live/stop": {
+      "post": {
+        "summary": "Stop a live stream",
+        "operationId": "stopLive",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveStopRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stream stopped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveStopResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/live/status": {
+      "get": {
+        "summary": "Read live stream status",
+        "operationId": "getLiveStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Stream ID such as CMH24-123456-ABCDEF-ch1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/openapi.json": {
+      "get": {
+        "summary": "OpenAPI contract",
+        "operationId": "getOpenAPI",
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/docs": {
+      "get": {
+        "summary": "Swagger UI redirect",
+        "operationId": "getDocs",
+        "responses": {
+          "301": {
+            "description": "Redirect to /api/docs/"
+          }
+        }
+      }
+    },
+    "/api/docs/": {
+      "get": {
+        "summary": "Swagger UI",
+        "operationId": "getDocsUI",
+        "responses": {
+          "200": {
+            "description": "Swagger UI HTML",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Security code rejected",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "A stream is active",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UpstreamTimeout": {
+        "description": "The base station did not respond in time",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UpstreamError": {
+        "description": "The base station or media pipeline failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error", "code"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code",
+            "enum": [
+              "invalid_json",
+              "validation_failed",
+              "method_not_allowed",
+              "not_found",
+              "conflict",
+              "unauthorized",
+              "upstream_timeout",
+              "upstream_error",
+              "internal_error"
+            ]
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": ["status", "mode", "live"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "mode": {
+            "type": "string",
+            "example": "local-only"
+          },
+          "live": {
+            "type": "string",
+            "example": "hls"
+          }
+        }
+      },
+      "Device": {
+        "type": "object",
+        "required": ["ip", "local"],
+        "properties": {
+          "ip": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "did": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "ppcsPort": {
+            "type": "integer",
+            "description": "Ephemeral PPCS port observed during discovery"
+          },
+          "mac": {
+            "type": "string"
+          },
+          "local": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DiscoverResponse": {
+        "type": "object",
+        "required": ["devices", "durationMs"],
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Device"
+            }
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1234
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ProbeRequest": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "did": {
+            "type": "string"
+          }
+        },
+        "description": "At least one of ip or did must be provided."
+      },
+      "AuthRequest": {
+        "type": "object",
+        "required": ["ip", "did", "securityCode"],
+        "properties": {
+          "ip": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "did": {
+            "type": "string"
+          },
+          "securityCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "writeOnly": true
+          }
+        }
+      },
+      "ProbeResult": {
+        "type": "object",
+        "required": ["ip", "port", "did", "ready", "roundTrip", "messages"],
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "did": {
+            "type": "string"
+          },
+          "ready": {
+            "type": "boolean"
+          },
+          "roundTrip": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AuthResult": {
+        "type": "object",
+        "required": ["ip", "port", "did", "authenticated", "roundTrip", "messages"],
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "did": {
+            "type": "string"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "roundTrip": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "HubInfo": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "firmware": {
+            "type": "string"
+          },
+          "apiVersion": {
+            "type": "string"
+          },
+          "mcuVersion": {
+            "type": "string"
+          },
+          "mac": {
+            "type": "string"
+          },
+          "sdCardStatus": {
+            "type": "string",
+            "enum": ["normal", "busy", "noCard", "slow", "error"]
+          },
+          "sdTotalBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sdFreeBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "CameraChannel": {
+        "type": "object",
+        "required": ["index"],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "name": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "fwVersion": {
+            "type": "string"
+          },
+          "mcuVersion": {
+            "type": "string"
+          },
+          "fwVersionRaw": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mcuVersionRaw": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updateable": {
+            "type": "boolean"
+          },
+          "motionEnabled": {
+            "type": "boolean"
+          },
+          "pirMode": {
+            "type": "integer",
+            "enum": [0, 1]
+          },
+          "pirSensitivityDay": {
+            "type": "integer"
+          }
+        }
+      },
+      "ChannelsResponse": {
+        "type": "object",
+        "required": ["did", "hub", "channels"],
+        "properties": {
+          "did": {
+            "type": "string"
+          },
+          "hub": {
+            "$ref": "#/components/schemas/HubInfo"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CameraChannel"
+            }
+          }
+        }
+      },
+      "MotionRequest": {
+        "type": "object",
+        "required": ["ip", "did", "securityCode", "channel", "enabled"],
+        "properties": {
+          "ip": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "did": {
+            "type": "string"
+          },
+          "securityCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "writeOnly": true
+          },
+          "channel": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LiveStartRequest": {
+        "type": "object",
+        "required": ["ip", "did", "securityCode"],
+        "properties": {
+          "ip": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "did": {
+            "type": "string"
+          },
+          "securityCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16,
+            "writeOnly": true
+          },
+          "cameraIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "default": 0
+          },
+          "quality": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4,
+            "default": 0
+          }
+        }
+      },
+      "LiveResult": {
+        "type": "object",
+        "required": ["id", "playlistUrl"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playlistUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "LiveStopRequest": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "LiveStopResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "stopped"
+          }
+        }
+      },
+      "Battery": {
+        "type": "object",
+        "required": ["capacity", "charging"],
+        "properties": {
+          "capacity": {
+            "type": "integer"
+          },
+          "charging": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LiveStatus": {
+        "type": "object",
+        "required": ["id", "running", "channel", "bitrateBytesPerSecond"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "channel": {
+            "type": "integer"
+          },
+          "bitrateBytesPerSecond": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "framesPerSecond": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "battery": {
+            "$ref": "#/components/schemas/Battery"
+          },
+          "uptimeSeconds": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    }
+  }
+}

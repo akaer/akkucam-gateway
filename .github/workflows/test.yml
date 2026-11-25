@@ -1,0 +1,49 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache: false
+      - run: go vet ./...
+      - run: go test -count=1 ./...
+      - run: go test -race -count=1 ./...
+      - run: go test -coverprofile=coverage.out ./...
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t akkucam-gateway:test .
+      - name: Generate SBOM
+        run: ./scripts/sbom.sh akkucam-gateway:test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: |
+            sbom/akkucam-gateway.cyclonedx.json
+            sbom/akkucam-gateway.spdx.json
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build --wait --wait-timeout 120
+      - run: ./scripts/test-e2e.sh
+      - if: always()
+        run: docker compose logs

@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+
+IMAGE="${GO_TEST_IMAGE:-golang:1.23-bookworm}"
+
+docker run --rm -v "$PWD:/src" -w /src "$IMAGE" go vet ./...
+docker run --rm -v "$PWD:/src" -w /src "$IMAGE" go test -count=1 ./...
+docker run --rm -v "$PWD:/src" -w /src "$IMAGE" go test -race -count=1 ./...
+docker build -t akkucam-gateway:test .

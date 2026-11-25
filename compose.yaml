@@ -1,0 +1,8 @@
+services:
+  akkucam-gateway:
+    build: .
+    container_name: akkucam-gateway
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      AKKUCAM_LISTEN: ":8080"
