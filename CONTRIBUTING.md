@@ -2,8 +2,7 @@
 
 ## Branches and pull requests
 
-`main` is always buildable. While the repository has no remote, changes may be
-merged into `main` locally without a pull request. Once `origin` exists, every
+`main` is always buildable. The repository has a remote (`origin`), so every
 change goes through a branch and a pull request:
 
 - `feature/<slug>` for new behavior
@@ -12,8 +11,7 @@ change goes through a branch and a pull request:
 
 Keep branches focused on one change, rebase on `main` when it moved, and squash
 merge the pull request. Delete the branch after the merge. Direct commits to
-`main` are not allowed once the remote is connected, including version bumps and
-documentation fixes.
+`main` are not allowed, including version bumps and documentation fixes.
 
 CI must be green before merging: static analysis, Go vet, unit and integration
 tests, race detector, image build with SBOM, and the Playwright suites. UI
