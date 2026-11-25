@@ -400,6 +400,7 @@ sensitive content.
 ## Verified environment
 
 - host: Linux/NixOS, x86-64
+- host: Raspberry Pi 4 Model B Rev 1.4, 64-bit
 - container: Alpine Linux, Go 1.27.4 build stage
 - Docker Engine with `network_mode: host`
 - base station: `SMH-T1R`, firmware `1.0.0.12`

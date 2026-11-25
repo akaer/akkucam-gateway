@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-The project is in the `0.1.x` beta range. Only the latest release and the
+The project is in the `0.2.x` release line. Only the latest release and the
 current `main` branch receive fixes.
 
 ## Reporting a vulnerability
