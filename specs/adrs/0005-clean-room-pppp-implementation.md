@@ -1,32 +1,36 @@
-# ADR-0005: Native Clean-Room-Reimplementierung von PPPP
+# ADR-0005: Native clean-room reimplementation of PPPP
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die Hersteller-App enthält `libPPCS_API.so` nur für Android/ARM. Der Dockerhost ist Linux/x86-64. Die Bibliothek ist proprietär und an Android-Systembibliotheken gebunden.
+The vendor app ships `libPPCS_API.so` for Android/ARM only. The Docker host is
+Linux/x86-64. The library is proprietary and tied to Android system libraries.
 
-## Entscheidung
+## Decision
 
-Die benötigte lokale Teilmenge des Protokolls wird nativ in Go implementiert: Discovery, PUNCH, P2P_RDY, DRW, ACK, Keepalive, Authentifizierung, IO-Control und Medien-Reassembly.
+The required local protocol subset is implemented natively in Go: discovery,
+PUNCH, P2P_RDY, DRW, ACK, keepalive, authentication, IO-Control and media
+reassembly.
 
-## Begründung
+## Reasoning
 
-- vermeidet Android- und ARM-Emulation
-- keine proprietären Binärdateien im Image
-- nachvollziehbarer und testbarer Code
-- nur tatsächlich benötigter lokaler Protokollumfang
-- Live-Mitschnitte bestätigen den Ablauf unabhängig
+- Avoids Android and ARM emulation
+- No proprietary binaries in the image
+- Traceable and testable code
+- Only the local protocol scope that is actually needed
+- Live captures confirm the flow independently
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- ARM-Bibliothek unter QEMU/Bionic: fragil und schwer zu verteilen.
-- Fremdgerät als Bridge: zusätzliche Hardware und weiter bestehende Herstellerabhängigkeit.
-- vollständige PPPP-Cloudimplementierung: außerhalb des lokalen Scopes.
+- **ARM library under QEMU/Bionic:** fragile and hard to distribute.
+- **Foreign device as a bridge:** extra hardware and a continuing vendor
+  dependency.
+- **Full PPPP cloud implementation:** outside the local scope.
 
-## Konsequenzen
+## Consequences
 
-- Verantwortung für Retransmission, Reassembly und Kompatibilität liegt beim Projekt.
-- weitere Firmwarevarianten können Protokollanpassungen benötigen.
-- Reverse-Engineering-Provenienz und Drittquellen werden dokumentiert.
+- The project owns retransmission, reassembly and compatibility.
+- Further firmware variants may need protocol adjustments.
+- Reverse-engineering provenance and third-party sources are documented.

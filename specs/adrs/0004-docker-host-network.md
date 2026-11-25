@@ -1,31 +1,33 @@
-# ADR-0004: Docker Hostnetwork für lokale Broadcasts
+# ADR-0004: Docker host networking for local broadcasts
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-WAI und PPPP verwenden IPv4-Broadcasts auf UDP/7200 und UDP/32108. Docker-Bridge-Netze transportieren diese Broadcasts nicht zuverlässig in das physische LAN.
+WAI and PPPP use IPv4 broadcasts on UDP/7200 and UDP/32108. Docker bridge
+networks do not reliably carry these broadcasts into the physical LAN.
 
-## Entscheidung
+## Decision
 
-Docker Compose verwendet unter Linux `network_mode: host`.
+Docker Compose uses `network_mode: host` on Linux.
 
-## Begründung
+## Reasoning
 
-- direkte und verifizierte Broadcast-Erreichbarkeit
-- keine privilegierten Raw-Sockets erforderlich
-- keine manuelle Portweiterleitung für dynamische UDP-Sitzungsports
-- funktioniert auf dem vorhandenen NixOS-Dockerhost
+- Direct, verified broadcast reachability
+- No privileged raw sockets needed
+- No manual port forwarding for dynamic UDP session ports
+- Works on the existing NixOS Docker host
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- Bridge plus UDP-Broadcast-Relay: zusätzliche Komponente und Konfiguration.
-- macvlan/ipvlan: stärkere Isolation, aber komplexer und problematisch für Host↔Container-Kommunikation.
-- `privileged`/Raw-Capture: unnötig und unsicherer.
+- **Bridge plus UDP broadcast relay:** an extra component and configuration.
+- **macvlan/ipvlan:** stronger isolation, but more complex and problematic for
+  host-to-container communication.
+- **`privileged` or raw capture:** unnecessary and less secure.
 
-## Konsequenzen
+## Consequences
 
-- geringere Netzwerkisolation des Containers.
-- HTTP-Port bindet direkt am Host.
-- primär Linux-spezifisches Compose-Deployment.
+- The container has less network isolation.
+- The HTTP port binds directly on the host.
+- The Compose deployment is primarily Linux-specific.

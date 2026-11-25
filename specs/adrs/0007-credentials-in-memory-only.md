@@ -1,30 +1,36 @@
-# ADR-0007: Sicherheitscode nur im Arbeitsspeicher
+# ADR-0007: Security code in memory only
 
 - Status: Superseded by [ADR-0012](0012-browser-session-credential.md)
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Der Geräte-Sicherheitscode ist für die AES-Challenge-Authentifizierung erforderlich. Die Hersteller-App speichert vergleichbare Werte nur schwach verschleiert.
+The device security code is required for AES challenge authentication. The
+vendor app stores comparable values with weak obfuscation only.
 
-## Entscheidung
+## Decision
 
-Der Gateway persistiert den Sicherheitscode nicht. Der Browser fragt ihn bei Authentifizierung oder Streamstart ab und sendet ihn im Request. Nach Sitzungsaufbau wird nur der abgeleitete Session-Key verwendet.
+The gateway does not persist the security code. The browser asks for it during
+authentication or stream start and sends it in the request. After the session
+is established, only the derived session key is used.
 
-## Begründung
+## Reasoning
 
-- kein Secret in Compose, Image, Datenbank oder Konfigurationsdatei
-- geringere Folgen eines Dateizugriffs auf den Host
-- einfache und transparente Sicherheitsgrenze
+- No secret in Compose, the image, a database or a configuration file
+- Smaller impact from a file access on the host
+- A simple and transparent security boundary
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- Environment-Variable: landet häufig in Prozess- und Container-Metadaten.
-- Konfigurationsdatei: bequem, erfordert aber Secret-Management und Dateirechte.
-- verschlüsselte Datenbank: Schlüsselproblem wird nur verschoben.
+- **Environment variable:** often ends up in process and container metadata.
+- **Configuration file:** convenient, but needs secret management and file
+  permissions.
+- **Encrypted database:** only moves the key problem.
 
-## Konsequenzen
+## Consequences
 
-- Nutzer muss den Code bei jedem neuen Stream eingeben.
-- zukünftiger komfortabler Kanalwechsel sollte den Code höchstens innerhalb einer aktiven Browsersitzung im RAM halten.
-- HTTP schützt den Request im LAN nicht vor Mitschnitt; TLS bleibt eine empfohlene Härtung.
+- The user must enter the code for every new stream.
+- A future convenient channel switch should keep the code in RAM at most for
+  an active browser session.
+- HTTP does not protect the request from capture on the LAN; TLS remains a
+  recommended hardening step.

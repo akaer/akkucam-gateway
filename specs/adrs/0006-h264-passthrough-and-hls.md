@@ -1,35 +1,39 @@
-# ADR-0006: H.264-Passthrough und HLS für Browserwiedergabe
+# ADR-0006: H.264 passthrough and HLS for browser playback
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die Kamera liefert H.264 Annex-B. Browser können diesen Elementarstream nicht direkt über eine normale HTTP-URL abspielen.
+The camera delivers H.264 Annex-B. Browsers cannot play this elementary stream
+directly from a normal HTTP URL.
 
-## Entscheidung
+## Decision
 
-Der Gateway schreibt H.264 unverändert an FFmpeg. FFmpeg setzt PTS/DTS und remuxt mit `-c:v copy` nach lokalem HLS/MPEG-TS. Im Browser wird ein lokal gebündeltes hls.js verwendet.
+The gateway writes H.264 unchanged to FFmpeg. FFmpeg sets PTS/DTS and remuxes
+with `-c:v copy` into local HLS/MPEG-TS. The browser uses a locally bundled
+hls.js.
 
-## Begründung
+## Reasoning
 
-- keine Qualitätsverluste durch Neukodierung
-- geringe CPU-Last
-- breite Browserunterstützung
-- einfache HTTP-Auslieferung
-- vorhandene FFmpeg-Paketierung
+- No quality loss from re-encoding
+- Low CPU load
+- Broad browser support
+- Simple HTTP delivery
+- FFmpeg already handles the packaging
 
-Der `setts`-Bitstreamfilter setzt monotone Zeitstempel, weil besonders Kanal 2 teilweise keine verwertbaren PTS/DTS liefert.
+The `setts` bitstream filter sets monotonic timestamps because channel 2 in
+particular sometimes delivers no usable PTS/DTS.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- WebRTC: niedrigere Latenz, aber deutlich komplexere Signalisierung und Paketierung.
-- MJPEG: hohe Bandbreite und notwendige Dekodierung/Neukodierung.
-- RTSP: gut für NVRs, aber nicht direkt browserfähig.
-- Transkodiertes HLS: unnötiger Qualitätsverlust und CPU-Bedarf.
+- **WebRTC:** lower latency, but far more complex signaling and packaging.
+- **MJPEG:** high bandwidth and forced decoding or re-encoding.
+- **RTSP:** good for NVRs, but not directly browser-capable.
+- **Transcoded HLS:** unnecessary quality loss and CPU demand.
 
-## Konsequenzen
+## Consequences
 
-- mehrere Sekunden Latenz durch HLS-Segmentierung.
-- FFmpeg wird Teil der Runtime und Angriffsfläche.
-- HLS-Dateien sind temporär und werden fortlaufend gelöscht.
+- HLS segmentation adds several seconds of latency.
+- FFmpeg becomes part of the runtime and the attack surface.
+- HLS files are temporary and deleted continuously.

@@ -1,31 +1,36 @@
-# ADR-0003: Ausschließlich lokaler Betrieb ohne Cloud-Fallback
+# ADR-0003: Local operation only, no cloud fallback
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Die Hersteller-App kontaktiert Oguard-Verzeichnis-, Push-, Firmware- und Relaydienste. Das Hauptziel ist ein lokaler Browserzugriff ohne Herstellerabhängigkeit.
+The vendor app contacts Oguard directory, push, firmware and relay services.
+The main goal is local browser access without vendor dependency.
 
-## Entscheidung
+## Decision
 
-Der Gateway implementiert ausschließlich die direkte LAN-Discovery und LAN-PPCS-Sitzung. Es gibt keinen automatischen oder optionalen Cloud-/Relay-Fallback.
+The gateway implements only direct LAN discovery and the LAN PPCS session. There
+is no automatic or optional cloud or relay fallback.
 
-## Begründung
+## Reasoning
 
-- LAN_SEARCH/PUNCH/P2P_RDY funktioniert vollständig lokal.
-- Video bleibt im Heimnetz.
-- Ausfall oder Abschaltung externer Server beeinträchtigt den Gateway nicht.
-- Weniger Datenschutz- und Sicherheitsrisiken.
-- Weniger Protokoll- und Betriebsumfang.
+- LAN_SEARCH/PUNCH/P2P_RDY works entirely on the local network.
+- Video stays in the home network.
+- An outage or shutdown of external servers does not affect the gateway.
+- Fewer privacy and security risks.
+- Less protocol and operational scope.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- Oguard nur für Rendezvous verwenden: technisch einfacher für Fernzugriff, widerspricht aber dem Cloudfrei-Ziel.
-- eigener externer Relayserver: hoher zusätzlicher Sicherheits- und Betriebsaufwand.
+- **Use Oguard only for rendezvous:** technically simpler for remote access, but
+  contradicts the cloud-free goal.
+- **Own external relay server:** high extra security and operational effort.
 
-## Konsequenzen
+## Consequences
 
-- Nutzung nur im gleichen Broadcast-/Routingbereich beziehungsweise mit explizitem Broadcast-Relay.
-- kein Fernzugriff ohne separates VPN ins Heimnetz.
-- die Basisstation selbst kann weiterhin Cloudverbindungen aufbauen; das muss außerhalb des Gateways per Firewall geregelt werden.
+- Use only within the same broadcast or routing domain, or with an explicit
+  broadcast relay.
+- No remote access without a separate VPN into the home network.
+- The base station itself can still open cloud connections; a firewall outside
+  the gateway must handle that.

@@ -1,29 +1,34 @@
-# ADR-0008: Kontroll-Sessions werden serialisiert
+# ADR-0008: Control sessions are serialized
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Parallele Probe- und Authentifizierungsversuche führten zu sporadischen LAN-PUNCH-Timeouts. Die Basisstation und Broadcastantworten lassen sich bei konkurrierenden Sitzungen nicht eindeutig genug zuordnen.
+Parallel probe and authentication attempts caused sporadic LAN PUNCH timeouts.
+The base station and broadcast replies cannot be mapped clearly enough when
+sessions compete.
 
-## Entscheidung
+## Decision
 
-Session-Probe, Authentifizierung und initialer Live-Sitzungsaufbau werden durch einen Prozess-Mutex serialisiert. Der laufende Medienstream arbeitet danach unabhängig.
+A process mutex serializes session probe, authentication and the initial live
+session setup. The running media stream then works independently.
 
-## Begründung
+## Reasoning
 
-- beseitigt beobachtete Race Conditions
-- sehr geringe funktionale Einschränkung für eine Basisstation
-- einfaches, gut nachvollziehbares Fehlermodell
+- Removes the observed race conditions
+- Very small functional restriction for one base station
+- A simple, traceable failure model
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- Zuordnung nur nach dynamischem UDP-Port und DID: komplexer und weiterhin von Broadcasttiming abhängig.
-- vollständig parallele Sessionmanager: erst bei mehreren unabhängigen Hubs relevant.
+- **Map by dynamic UDP port and DID only:** more complex and still dependent on
+  broadcast timing.
+- **Fully parallel session managers:** relevant only with several independent
+  hubs.
 
-## Konsequenzen
+## Consequences
 
-- gleichzeitige neue Verbindungsversuche warten aufeinander.
-- ein langsamer Timeout kann andere Kontrollaufrufe verzögern.
-- bestehende Videodatenübertragung wird nicht blockiert.
+- Concurrent new connection attempts wait for each other.
+- A slow timeout can delay other control calls.
+- Existing video transmission is not blocked.

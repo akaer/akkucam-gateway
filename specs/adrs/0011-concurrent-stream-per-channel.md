@@ -1,31 +1,41 @@
-# ADR-0011: Ein aktiver Stream pro DID und Kanal
+# ADR-0011: One active stream per DID and channel
 
 - Status: Accepted
-- Datum: 2026-11-21
-- Ersetzt: [ADR-0009](0009-one-active-stream-per-did.md)
+- Date: 2026-11-21
+- Supersedes: [ADR-0009](0009-one-active-stream-per-did.md)
 
-## Kontext
+## Context
 
-Eine SMH-T1R-Basisstation kann mehrere gekoppelte Akku-Kameras bedienen. Die reale Hardware meldet ihre Kanäle über IO-Control `40962` und kann für Kanal 1 und 2 gleichzeitig unabhängige lokale PPCS-Sitzungen liefern.
+An SMH-T1R base station can serve several coupled battery cameras. The real
+hardware reports its channels through IO-Control `40962` and can deliver
+independent local PPCS sessions for channels 1 and 2 at the same time.
 
-## Entscheidung
+## Decision
 
-Der Streammanager adressiert Streams mit `<DID>-ch<Kanalnummer>`. Pro DID und Kanal ist genau ein Stream aktiv; unterschiedliche Kanäle derselben DID dürfen parallel laufen. Ein Neustart desselben Kanals ersetzt nur diesen Kanal.
+The stream manager addresses streams as `<DID>-ch<channel number>`. Exactly one
+stream is active per DID and channel; different channels of the same DID may run
+in parallel. Restarting the same channel replaces only that channel.
 
-## Begründung
+## Reasoning
 
-- ermöglicht Dashboard- und Vergleichsansicht
-- behält eindeutigen Lifecycle pro Kamerakanal
-- verhindert weiterhin doppelte Sessions für denselben Kanal
-- getrennte HLS-Pfade, Bitraten und Batteriewerte
+- Enables the dashboard and comparison view
+- Keeps an unambiguous lifecycle per camera channel
+- Still prevents duplicate sessions for the same channel
+- Separate HLS paths, bitrates and battery values
 
-## Konsequenzen
+## Consequences
 
-- „Alle starten“ baut die Kanalsitzungen kontrolliert nacheinander auf und lässt sie anschließend parallel laufen.
-- Funk- und Akkuverbrauch steigen mit jedem aktiven Kanal.
-- Stop kann pro Kanal oder gesammelt erfolgen.
-- die Anzahl der Karten stammt aus der Hub-Kameraliste, nicht aus einer festen Annahme.
+- "Start all" establishes the channel sessions in controlled sequence and then
+  lets them run in parallel.
+- Radio and battery consumption grow with every active channel.
+- Stop works per channel or as a batch.
+- The number of tiles comes from the hub camera list, not from a fixed
+  assumption.
 
-## Präzisierung 2026-11-24
+## Clarification 2026-11-24
 
-Der Client startet die Kanäle eines Hubs parallel (`Promise.all` in `web/app.js`). Die geforderte kontrollierte Reihenfolge entsteht serverseitig: `POST /api/live/start` läuft unter demselben Prozess-Mutex wie Probe und Authentifizierung (ADR-0008). Die Sitzungsaufbauten laufen dadurch nacheinander, die Medienströme danach parallel.
+The client starts the channels of a hub in parallel (`Promise.all` in
+`web/app.js`). The server enforces the controlled order: `POST /api/live/start`
+runs under the same process mutex as probe and authentication (ADR-0008). The
+session setups therefore run one after another, and the media streams then run
+in parallel.
