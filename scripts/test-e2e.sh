@@ -3,7 +3,7 @@ set -eu
 
 ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 E2E="$ROOT/web/e2e"
-IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.49.1-jammy}"
+IMAGE="${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.65.1-jammy}"
 BASE_URL="${AKKUCAM_BASE_URL:-http://127.0.0.1:8080}"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
