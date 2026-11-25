@@ -20,6 +20,7 @@ import (
 	"akkucam-gateway/internal/openapi"
 	"akkucam-gateway/internal/ppcs"
 	streammanager "akkucam-gateway/internal/stream"
+	"akkucam-gateway/internal/version"
 )
 
 // Server owns the HTTP API and its injected dependencies.
@@ -99,6 +100,7 @@ type route struct {
 func (s *Server) routeTable() []route {
 	return []route{
 		{http.MethodGet, "/api/health", s.health},
+		{http.MethodGet, "/api/version", s.versionInfo},
 		{http.MethodPost, "/api/discover", s.discover},
 		{http.MethodPost, "/api/session/probe", s.probeSession},
 		{http.MethodPost, "/api/session/authenticate", s.authenticateSession},
@@ -145,6 +147,16 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 		"status": "ok",
 		"mode":   "local-only",
 		"live":   "hls",
+	})
+}
+
+func (s *Server) versionInfo(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, struct {
+		Version string `json:"version"`
+		Commit  string `json:"commit,omitempty"`
+	}{
+		Version: version.Version,
+		Commit:  version.Commit(),
 	})
 }
 

@@ -28,6 +28,9 @@ frontend rules, `tests/README.md` for test layout.
 7. **Vendored assets only.** No CDN, no Google Fonts. Every bundled component
    needs its license file in `web/`, an entry in the license dialog, an entry
    in `specs/sources.md` and a refreshed `sbom/` snapshot (ADR-0022/0023).
+8. **PR-only main.** Every change runs through `feature/<slug>` or
+   `fix/<slug>` and a pull request; `main` stays buildable. Releases bump
+   `internal/version/version.go` and tag `v<version>` (ADR-0032).
 
 ## Runtime and configuration
 
@@ -42,8 +45,9 @@ frontend rules, `tests/README.md` for test layout.
 - Dashboard only (no rebuild): `AKKUCAM_WEB_ROOT=$PWD/web go run ./cmd/gateway`.
   Web assets are served from disk, not embedded; `web/` is copied into the
   image, so a container needs `docker compose build` after UI changes.
-- Full stack: `docker compose build && docker compose up -d --wait
-  --wait-timeout 60`, then `curl -s http://127.0.0.1:8080/api/health`.
+- Full stack: `make up`, then `curl -s http://127.0.0.1:8080/api/health`.
+  `make up` passes the Git commit into the image; check it with
+  `curl -s http://127.0.0.1:8080/api/version`.
 - A 404 after a code change usually means an old container still owns `:8080`
   (`docker compose ps` shows image and creation time). Recreate it; a plain
   `docker build` does not replace a running container.
@@ -60,6 +64,7 @@ frontend rules, `tests/README.md` for test layout.
 | Live stream against real hardware | `AKKUCAM_TEST_SECURITY_CODE='<code>' AKKUCAM_TEST_LIVE_STREAM=1 ./scripts/test-e2e.sh --project=live` |
 | Protocol test against a real hub | `AKKUCAM_TEST_IP=… AKKUCAM_TEST_DID=… AKKUCAM_TEST_SECURITY_CODE=… ./scripts/test-hardware.sh` |
 | SBOM refresh | `make sbom` or `./scripts/sbom.sh` |
+| Running version | `curl -s http://127.0.0.1:8080/api/version` |
 
 The browser script needs a reachable gateway and installs the Playwright
 dependencies inside the pinned image on first use. Every suite runs twice:
@@ -79,6 +84,7 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
 | UI behavior or layout | see `web/AGENTS.md` | `make test-e2e` |
 | Protocol detail | `internal/ppcs` with `constants.go`, `specs/protocol.md`, ADR | `make test`, optionally hardware |
 | Image dependency | ADR, license dialog, `specs/sources.md`, `./scripts/sbom.sh` | `make test`, committed SBOM diff |
+| Release | `internal/version/version.go`, tag `v<version>` | `make test`, `GET /api/version` carries the tag's version and commit |
 
 ## Definition of done
 
@@ -97,10 +103,14 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
    Update both in the same change and keep sections, commands, ports,
    environment variables, links and screenshots in step with the code.
    `tests/readme_test.go` checks the structure; the wording is reviewed by hand.
+8. The change went through a `feature/` or `fix/` branch and a pull request.
+   A release bumps the version in `internal/version/version.go` and tags
+   `main` with `v<version>` (ADR-0032).
 
 ## Pointers
 
 - `specs/README.md` — document types and maintenance rules
+- `CONTRIBUTING.md` — branch, pull request and release workflow
 - `specs/adrs/README.md` — ADR index with status
 - `specs/testing.md` — test strategy, hardware runs
 - `tests/README.md` — Go test layout and naming

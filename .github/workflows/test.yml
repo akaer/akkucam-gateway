@@ -2,6 +2,8 @@ name: test
 
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t akkucam-gateway:test .
+      - run: docker build --build-arg COMMIT="${GITHUB_SHA}" -t akkucam-gateway:test .
       - name: Generate SBOM
         run: ./scripts/sbom.sh akkucam-gateway:test
       - uses: actions/upload-artifact@v4
@@ -41,6 +43,8 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    env:
+      COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
       - run: docker compose up -d --build --wait --wait-timeout 120

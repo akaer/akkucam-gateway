@@ -33,7 +33,7 @@ Verifiziert ist die Basisstation `SMH-T1R` mit Firmware `1.0.0.12` und den Kamer
 ## Start
 
 ```bash
-docker compose up -d --build --wait
+make up
 ```
 
 Danach <http://localhost:8080> öffnen, „Basisstationen suchen“ klicken, den Sicherheitscode der Basisstation eingeben und die Streams starten. Der erste Frame braucht einige Sekunden, weil der Start die Kamera aufweckt.
@@ -111,7 +111,7 @@ make test        # go vet, Unit-, API- und Integrationstests, Race Detector, Ima
 make test-e2e    # Playwright in Chromium und Firefox
 ```
 
-`make test` braucht nur Docker, kein lokales Go. Der Browserlauf setzt ein laufendes Gateway voraus (`docker compose up -d --wait`) und nutzt Playwright im gepinnten Image. Testaufbau, Hardwaretests und Abdeckung stehen in [specs/testing.md](specs/testing.md). Die CI führt Go-Tests, Image-Build, SBOM-Erzeugung und Playwright aus.
+`make test` braucht nur Docker, kein lokales Go. Der Browserlauf setzt ein laufendes Gateway voraus (`make up`) und nutzt Playwright im gepinnten Image. Testaufbau, Hardwaretests und Abdeckung stehen in [specs/testing.md](specs/testing.md). Die CI führt Go-Tests, Image-Build, SBOM-Erzeugung und Playwright aus.
 
 ## Entwicklung
 
@@ -122,6 +122,8 @@ AKKUCAM_WEB_ROOT=$PWD/web go run ./cmd/gateway
 ```
 
 Nach Änderungen an `web/` ist für den Container ein neuer Build nötig.
+
+Die Version steht in `internal/version/version.go`. `make up`, `make test` und die CI übergeben den Git-Commit an den Build; Hilfe-Dialog und `GET /api/version` zeigen beides. Releases folgen semantischer Versionierung und werden auf `main` mit `v<version>` getaggt; Branch-, PR- und Release-Ablauf stehen in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## SBOM
 

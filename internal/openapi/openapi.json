@@ -30,6 +30,25 @@
         }
       }
     },
+    "/api/version": {
+      "get": {
+        "summary": "Gateway version",
+        "operationId": "getVersion",
+        "description": "Version of the running gateway and the commit it was built from.",
+        "responses": {
+          "200": {
+            "description": "Version information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/discover": {
       "post": {
         "summary": "Discover base stations on the LAN",
@@ -439,6 +458,23 @@
           "live": {
             "type": "string",
             "example": "hls"
+          }
+        }
+      },
+      "Version": {
+        "type": "object",
+        "required": ["version"],
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "Semantic version of the gateway (SemVer 2.0.0)",
+            "example": "0.1.0-beta.1"
+          },
+          "commit": {
+            "type": "string",
+            "description": "Short Git commit the binary was built from; omitted when the build carries none.",
+            "pattern": "^[0-9a-f]{7,40}$",
+            "example": "bfe827d"
           }
         }
       },

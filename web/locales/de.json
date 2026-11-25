@@ -13,6 +13,9 @@
   "help.wallText": "Sobald die erste Kameraliste geladen ist, füllt die Live-Wand den Bildschirm. Wechsle zwischen Auto, Fokus und Komfort, filtere nach Basisstation und öffne eine Kachel für Details.",
   "help.dismiss": "Verstanden",
 
+  "version.line": "Version {version}",
+  "version.lineWithCommit": "Version {version} · Commit {commit}",
+
   "action.discover": "Basisstationen suchen",
 
   "wall.title": "Live-Wand",

@@ -99,6 +99,7 @@ const ui = {
   languageSelect: $('#language-select'),
   helpToggle: $('#help-toggle'),
   helpDialog: $('#help-dialog'),
+  appVersion: $('#app-version'),
   licensesDialog: $('#licenses-dialog'),
   openLicenses: $('#open-licenses'),
   streamHolder: $('#stream-holder'),
@@ -322,6 +323,26 @@ async function api(path, options = {}) {
     throw error;
   }
   return body;
+}
+
+let versionInfo = null;
+
+function renderVersion() {
+  if (!versionInfo) return;
+  const key = versionInfo.commit ? 'version.lineWithCommit' : 'version.line';
+  ui.appVersion.textContent = i18n.t(key, versionInfo);
+  ui.appVersion.hidden = false;
+}
+
+async function loadVersion() {
+  try {
+    const info = await api('/api/version');
+    if (!info || !info.version) return;
+    versionInfo = { version: info.version, commit: info.commit || '' };
+    renderVersion();
+  } catch {
+    // Without the API the help dialog simply omits the version line.
+  }
 }
 
 function storedTheme() {
@@ -1874,6 +1895,7 @@ document.addEventListener('i18n:change', () => {
   if (ui.hubsDialog.open) renderHubManager();
   if (ui.settingsDialog.open) renderSettings();
   if (state.details) renderDetailsDrawer();
+  renderVersion();
 });
 
 ui.forgetCode.addEventListener('click', () => forgetAllCredentials(ui.forgetCode));
@@ -1984,6 +2006,8 @@ i18n.ready.then(() => {
   renderNotice();
   renderLayout();
   renderSettings();
+  renderVersion();
+  loadVersion();
   if (ui.hubsDialog.open) renderHubManager();
   if (state.details) renderDetailsDrawer();
 });

@@ -190,6 +190,24 @@ test.describe('help popup', () => {
     await expect(dialog).toContainText('Basisstation finden, gekoppelte Kameras öffnen und Livebild ohne Cloud-Dienst starten.');
   });
 
+  test('shows the version and build commit from the API', async ({ page, request }) => {
+    // Arrange
+    const response = await request.get('/api/version');
+    const info = await response.json();
+
+    // Act
+    await page.goto('/?lang=en');
+    await page.locator('#help-toggle').click();
+
+    // Assert
+    const version = page.locator('#app-version');
+    await expect(version).toBeVisible();
+    await expect(version).toContainText(info.version);
+    if (info.commit) {
+      await expect(version).toContainText(info.commit);
+    }
+  });
+
   test('help icon sits at the far right of the topbar', async ({ page }) => {
     // Arrange
     await page.goto('/?lang=en');

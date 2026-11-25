@@ -1,6 +1,9 @@
 services:
   akkucam-gateway:
-    build: .
+    build:
+      context: .
+      args:
+        COMMIT: ${COMMIT:-}
     container_name: akkucam-gateway
     network_mode: host
     restart: unless-stopped

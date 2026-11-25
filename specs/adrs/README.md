@@ -44,6 +44,7 @@
 | [0029](0029-design-tokens-and-icons.md) | Design-Tokens und ein Icon-Satz | Accepted |
 | [0030](0030-accessibility.md) | Barrierefreiheit der Oberfläche | Accepted |
 | [0031](0031-live-metrics-overlay.md) | Live-Daten-Overlay und Sichtbarkeitseinstellung | Accepted |
+| [0032](0032-versioning-and-branch-workflow.md) | Semantische Versionierung und Branch-Workflow | Accepted |
 
 ## Vorlage
 

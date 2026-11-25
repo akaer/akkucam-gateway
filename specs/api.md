@@ -46,6 +46,15 @@ Beispielantwort:
 {"status":"ok","mode":"local-only","live":"hls"}
 ```
 
+## `GET /api/version`
+
+Liefert die semantische Version und den kurzen Git-Commit des laufenden
+Binaries. Fehlt der Commit im Build, entfällt das Feld.
+
+```json
+{"version":"0.1.0-beta.1","commit":"bfe827d"}
+```
+
 ## `POST /api/discover`
 
 Startet WAI- und PPPP-LAN-Discovery. Request-Body ist leer.

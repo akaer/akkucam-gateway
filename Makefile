@@ -1,5 +1,7 @@
 .PHONY: test test-e2e test-hardware build up down sbom
 
+COMMIT := $(shell git rev-parse HEAD 2>/dev/null)
+
 test:
 	./scripts/test.sh
 
@@ -10,10 +12,10 @@ test-hardware:
 	./scripts/test-hardware.sh
 
 build:
-	docker compose build
+	COMMIT="$(COMMIT)" docker compose build
 
 up:
-	docker compose up -d --build
+	COMMIT="$(COMMIT)" docker compose up -d --build --wait --wait-timeout 60
 
 down:
 	docker compose down

@@ -10,6 +10,7 @@ import (
 
 	"akkucam-gateway/internal/gateway"
 	streammanager "akkucam-gateway/internal/stream"
+	"akkucam-gateway/internal/version"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 		ReadHeaderTimeout: gateway.ReadHeaderTimeout,
 	}
 
-	log.Printf("AkkuCam gateway listening on %s", listen)
+	log.Printf("AkkuCam gateway %s listening on %s", version.Display(), listen)
 	if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}

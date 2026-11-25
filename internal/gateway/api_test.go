@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"akkucam-gateway/internal/discovery"
 	"akkucam-gateway/internal/ppcs"
 	streammanager "akkucam-gateway/internal/stream"
+	"akkucam-gateway/internal/version"
 )
 
 type fakeStreams struct {
@@ -255,6 +257,35 @@ func TestHealthContract(t *testing.T) {
 	}
 	if body["status"] != "ok" || body["mode"] != "local-only" || body["live"] != "hls" {
 		t.Fatalf("unexpected health body: %#v", body)
+	}
+}
+
+func TestVersionContract(t *testing.T) {
+	// Arrange
+	_, handler, _ := testServer(t)
+
+	// Act
+	response := request(t, handler, http.MethodGet, "/api/version", "")
+
+	// Assert
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.Code)
+	}
+	var body struct {
+		Version string `json:"version"`
+		Commit  string `json:"commit"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Version != version.Version {
+		t.Fatalf("version = %q, want %q", body.Version, version.Version)
+	}
+	if body.Commit != version.Commit() {
+		t.Fatalf("commit = %q, want %q", body.Commit, version.Commit())
+	}
+	if body.Commit != "" && !regexp.MustCompile(`^[0-9a-f]{7,40}$`).MatchString(body.Commit) {
+		t.Fatalf("commit = %q, want a short git hash", body.Commit)
 	}
 }
 

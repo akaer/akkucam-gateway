@@ -1,11 +1,14 @@
 FROM golang:1.23-alpine AS build
 WORKDIR /src
+ARG COMMIT=
 COPY go.mod ./
 COPY cmd ./cmd
 COPY internal ./internal
 COPY web ./web
 RUN CGO_ENABLED=0 GOOS=linux go test ./... && \
-    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/akkucam-gateway ./cmd/gateway
+    CGO_ENABLED=0 GOOS=linux go build -trimpath \
+      -ldflags="-s -w -X akkucam-gateway/internal/version.commit=${COMMIT}" \
+      -o /out/akkucam-gateway ./cmd/gateway
 
 FROM alpine:3.21
 RUN apk add --no-cache ffmpeg && addgroup -S gateway && adduser -S -G gateway gateway

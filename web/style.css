@@ -1310,6 +1310,11 @@ label[for="security-code"] { display: block; margin-bottom: 7px; font-weight: 70
   color: var(--text);
 }
 .help-dialog p:not(.eyebrow) { color: var(--muted); }
+.help-dialog .app-version {
+  margin-top: 18px;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- details drawer ---------- */
 
