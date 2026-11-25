@@ -156,7 +156,7 @@ Das Protokoll ist aus beobachtetem Netzwerkverkehr und Versuchen an eigener Hard
 
 ABUS und AkkuCam sind Marken ihrer Inhaber. Dieses Projekt ist unabhängig und weder vom Hersteller unterstützt noch mit ihm verbunden.
 
-Fehlerberichte sind willkommen; Sicherheitscode, DID und lokale IP-Adressen gehören nicht hinein.
+Fehlerberichte sind willkommen im [Issue-Tracker](https://github.com/akaer/akkucam-gateway/issues); Sicherheitscode, DID und lokale IP-Adressen gehören nicht hinein. Sicherheitslücken laufen über den Ablauf in [`SECURITY.md`](SECURITY.md).
 
 ## Dokumentation
 

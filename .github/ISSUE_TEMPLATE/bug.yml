@@ -1,0 +1,65 @@
+name: Bug report
+description: Something does not work as expected
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never paste real security codes, DIDs, local IP addresses, packet
+        captures or tokens. Redact them from logs and screenshots.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I removed security codes, DIDs, local IP addresses and tokens from this report.
+          required: true
+        - label: I checked the open issues and the documentation in specs/.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Gateway version
+      description: Output of `curl -s http://127.0.0.1:8080/api/version`
+      placeholder: 0.1.0-beta.2 (abc1234)
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Base station and cameras
+      description: Model and firmware of the base station, camera models
+      placeholder: SMH-T1R, firmware 1.0.0.12, PPIC90000
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Host OS, Docker version, browser and version
+      placeholder: Linux 6.x, Docker 27.x, Firefox 140
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, what did you expect, what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant gateway or browser output, with secrets removed
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Screenshots, network setup or anything else that helps
+    validations:
+      required: false

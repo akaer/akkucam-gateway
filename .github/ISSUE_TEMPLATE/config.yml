@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/akaer/akkucam-gateway/blob/main/specs/README.md
+    about: Architecture, protocol, API, tests and decisions
+  - name: Security policy
+    url: https://github.com/akaer/akkucam-gateway/blob/main/SECURITY.md
+    about: Report a vulnerability privately
