@@ -39,7 +39,7 @@ func WAI(ctx context.Context) ([]Device, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	if err := enableBroadcast(conn); err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func PPCS(ctx context.Context) ([]Device, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	if err := enableBroadcast(conn); err != nil {
 		return nil, err

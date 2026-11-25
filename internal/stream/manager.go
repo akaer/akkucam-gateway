@@ -185,6 +185,7 @@ func (m *Manager) Start(parent context.Context, ip, did, password string, camera
 // (ADR-0006); timestamps are regenerated at the negotiated frame rate.
 func ffmpegCommand(ctx context.Context, playlist string) *exec.Cmd {
 	filter := fmt.Sprintf("setts=pts=N/(%d*TB_OUT):dts=N/(%d*TB_OUT)", ffmpegFrameRate, ffmpegFrameRate)
+	//nolint:gosec // G204: feste Argumentliste, Playlist-Pfad aus validierter Stream-ID (ADR-0033)
 	return exec.CommandContext(ctx, "ffmpeg",
 		"-hide_banner", "-loglevel", ffmpegLogLevel,
 		"-fflags", "+genpts",

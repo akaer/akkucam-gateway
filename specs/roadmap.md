@@ -15,6 +15,7 @@
 - optionale HTTP-Authentifizierung
 - dokumentiertes Reverse-Proxy-Beispiel für TLS
 - Request-Größenlimits und explizite Timeouts für Body/Response
+- Container-Image-Scan mit Trivy auf dem gebauten Image, ergänzend zur SBOM (Phase 2 aus ADR-0033)
 
 ### Bedienung
 

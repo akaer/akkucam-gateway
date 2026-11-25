@@ -17,5 +17,5 @@ docker run --rm --network host \
   -e AKKUCAM_TEST_SECURITY_CODE \
   -e AKKUCAM_TEST_CHANNEL="${AKKUCAM_TEST_CHANNEL:-0}" \
   -v "$PWD:/src" -w /src \
-  golang:1.23-alpine \
+  golang:1.27.4-alpine \
   go test -tags=hardware -count=1 -v ./internal/ppcs -run TestHardware

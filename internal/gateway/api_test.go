@@ -73,7 +73,7 @@ func testServer(t *testing.T) (*Server, http.Handler, *fakeStreams) {
 
 func request(t *testing.T, handler http.Handler, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
-	req := httptest.NewRequest(method, path, bytes.NewBufferString(body))
+	req := httptest.NewRequestWithContext(context.Background(), method, path, bytes.NewBufferString(body))
 	if body != "" {
 		req.Header.Set("Content-Type", "application/json")
 	}

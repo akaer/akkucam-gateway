@@ -62,6 +62,7 @@ frontend rules, `tests/README.md` for test layout.
 | Purpose | Command |
 |---|---|
 | Go checks (vet, tests, race, image build) | `make test` or `./scripts/test.sh` |
+| Static analysis (Go, JS, shell, Dockerfile, workflows) | `make lint` or `./scripts/lint.sh` |
 | Browser tests (Chromium + Firefox, all projects) | `make test-e2e` or `./scripts/test-e2e.sh` |
 | Live stream against real hardware | `AKKUCAM_TEST_SECURITY_CODE='<code>' AKKUCAM_TEST_LIVE_STREAM=1 ./scripts/test-e2e.sh --project=live` |
 | Protocol test against a real hub | `AKKUCAM_TEST_IP=… AKKUCAM_TEST_DID=… AKKUCAM_TEST_SECURITY_CODE=… ./scripts/test-hardware.sh` |
@@ -83,6 +84,7 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
 | New API endpoint | route table in `internal/gateway`, `internal/openapi/openapi.json`, `internal/apierr` code if new, `web/locales/{en,de}.json` | `make test` (contract test compares both directions) |
 | New error path | sentinel error with `%w`, mapping in `internal/gateway`, code in `internal/apierr`, both catalogs | `make test` (`TestErrorResponsesCarryStableCodes`, i18n tests) |
 | New UI text | `web/index.html` / `web/app.js` through `web/i18n.js`, key in both catalogs | `make test` (i18n key tests) |
+| Static analysis rule or finding | `.golangci.yml` / `.semgrep/gateway.yml`; `//nolint` only with reason and ADR-0033 | `make lint` |
 | UI behavior or layout | see `web/AGENTS.md` | `make test-e2e` |
 | Protocol detail | `internal/ppcs` with `constants.go`, `specs/protocol.md`, ADR | `make test`, optionally hardware |
 | Image dependency | ADR, license dialog, `specs/sources.md`, `./scripts/sbom.sh` | `make test`, committed SBOM diff |
@@ -96,7 +98,8 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
    passes.
 3. Tests are extended at the right layer: unit, API contract, fake-hub
    integration or Playwright.
-4. `make test` passes, including `go vet` and the race detector.
+4. `make lint` and `make test` pass, including `go vet`, the race detector and
+   the static analysis gate.
 5. User-visible changes are covered by Playwright; language switching must not
    interrupt running streams.
 6. Image dependencies changed: regenerate `sbom/` and update license dialog

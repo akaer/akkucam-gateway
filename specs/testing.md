@@ -172,6 +172,19 @@ AKKUCAM_TEST_SECURITY_CODE='<code>' AKKUCAM_TEST_LIVE_STREAM=1 ./scripts/test-e2
 
 Der Sicherheitscode wird ausschließlich als Umgebungsvariable übergeben. Die Live-Suite schreibt bewusst keine Traces, Videos oder Screenshots.
 
+### Statische Analyse
+
+`./scripts/lint.sh` (beziehungsweise `make lint`) prüft Go-Code, Browserquellen, Skripte, Dockerfile und Workflows in gepinnten Container-Images; eine lokale Installation ist nicht nötig. Details und Begründungen stehen in ADR-0033.
+
+- `golangci-lint` mit `default: standard`, `gosec`, `errorlint`, `noctx`, `bodyclose` und `misspell`; Konfiguration in `.golangci.yml`
+- `govulncheck` im Go-Image der Build-Stage, also auf derselben Standardbibliothek wie das Binary
+- `semgrep` mit `p/golang`, `p/javascript`, `p/secrets` und den Projektregeln in `.semgrep/gateway.yml`: keine ausgehenden HTTP-/TCP-Clients, kein Sicherheitscode in `localStorage`/`sessionStorage`
+- `shellcheck`, `hadolint`, `actionlint`
+
+Alle Werkzeuge blockieren. Ausnahmen stehen nur in `.golangci.yml` und sind dort begründet: G115 im Protokollpaket, G304/G306 in Tests. Jedes `//nolint` trägt Grund und Verweis. Semgrep lädt die Registry-Regelsets zur Laufzeit und sendet keine Metriken.
+
+Grenzen: Semgrep prüft Muster, keine Datenflüsse über Funktionsgrenzen; die Storage-Regel erkennt einen generischen Schlüssel nicht. Der Nachweis, dass Sicherheitscodes den Browser-RAM nicht verlassen, bleibt bei den Playwright-Sicherheitscode-Tests. CVEs im Laufzeit-Image deckt die Analyse nicht ab; dieser Bildscan ist als Phase 2 in `specs/roadmap.md` notiert.
+
 ### Hardware-Integrationstest
 
 1. Container mit Hostnetwork starten.
@@ -206,6 +219,7 @@ Auf NixOS genügt Docker; eine lokale Go-Installation ist nicht erforderlich:
 
 ```bash
 make test           # vet, Unit/API/Integration, Race Detector, Docker-Build
+make lint           # statische Analyse in gepinnten Images (ADR-0033)
 make test-e2e       # Playwright in Chromium und Firefox: i18n-, Branding-, Credentials-, Workspaces- und Wall-Suite; Live-Suite nur mit AKKUCAM_TEST_SECURITY_CODE
 make test-hardware  # optional, echte Hardware
 ./scripts/sbom.sh   # CycloneDX- und SPDX-SBOM aus dem Image neu erzeugen
@@ -300,7 +314,7 @@ Bei Änderungen an Framing oder Reassembly sollen gespeicherte, lokal geschützt
 ## Verifizierte Umgebung
 
 - Host: Linux/NixOS, x86-64
-- Container: Alpine Linux, Go 1.23 Buildstage
+- Container: Alpine Linux, Go 1.27.4 Buildstage
 - Docker Engine mit `network_mode: host`
 - Basisstation: `SMH-T1R`, Firmware `1.0.0.12`
 - zwei gekoppelte Akku-Kameras auf Kanal 1 und 2

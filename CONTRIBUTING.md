@@ -15,9 +15,9 @@ merge the pull request. Delete the branch after the merge. Direct commits to
 `main` are not allowed once the remote is connected, including version bumps and
 documentation fixes.
 
-CI must be green before merging: Go vet, unit and integration tests, race
-detector, image build with SBOM, and the Playwright suites. UI changes need a
-Playwright check in both browsers.
+CI must be green before merging: static analysis, Go vet, unit and integration
+tests, race detector, image build with SBOM, and the Playwright suites. UI
+changes need a Playwright check in both browsers.
 
 ## Versioning
 
@@ -42,6 +42,7 @@ without a known commit omits the hash instead of inventing one.
 
 ```bash
 make test        # vet, unit, API and integration tests, race detector, image build
+make lint        # static analysis (golangci-lint, govulncheck, semgrep, shellcheck, hadolint, actionlint)
 make test-e2e    # Playwright, Chromium and Firefox
 ```
 

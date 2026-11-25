@@ -145,7 +145,7 @@ func openLocalAt(ctx context.Context, wantedIP, wantedDID string, target *net.UD
 		return nil, nil, err
 	}
 	if err := enableBroadcast(conn); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, nil, err
 	}
 
@@ -159,7 +159,7 @@ func openLocalAt(ctx context.Context, wantedIP, wantedDID string, target *net.UD
 
 	for punchPacket == nil {
 		if err := ctx.Err(); err != nil {
-			conn.Close()
+			_ = conn.Close()
 			return nil, messages, fmt.Errorf("%w: %w", ErrLanTimeout, err)
 		}
 		_, _ = conn.WriteToUDP(search, target)
@@ -170,7 +170,7 @@ func openLocalAt(ctx context.Context, wantedIP, wantedDID string, target *net.UD
 			if errors.As(readErr, &netErr) && netErr.Timeout() {
 				continue
 			}
-			conn.Close()
+			_ = conn.Close()
 			return nil, messages, readErr
 		}
 		candidate, parseErr := ParsePunch(buffer[:n])

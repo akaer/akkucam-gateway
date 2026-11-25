@@ -333,7 +333,9 @@ func TestLiveProtocolVideoFromSpec(t *testing.T) {
 		t.Fatalf("output is not Annex-B H264: %x", h264)
 	}
 	cancel()
-	<-runDone
+	if err := <-runDone; err != nil && !errors.Is(err, context.Canceled) {
+		t.Fatal(err)
+	}
 	if err := <-hub.serverErr; err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +378,9 @@ func TestLiveProtocolBatteryFromSpec(t *testing.T) {
 		t.Fatalf("battery=%+v", reading)
 	}
 	cancel()
-	<-runDone
+	if err := <-runDone; err != nil && !errors.Is(err, context.Canceled) {
+		t.Fatal(err)
+	}
 	if err := <-hub.serverErr; err != nil {
 		t.Fatal(err)
 	}

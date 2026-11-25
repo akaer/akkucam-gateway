@@ -1,9 +1,12 @@
-.PHONY: test test-e2e test-hardware build up down sbom
+.PHONY: test lint test-e2e test-hardware build up down sbom
 
 COMMIT := $(shell git rev-parse HEAD 2>/dev/null)
 
 test:
 	./scripts/test.sh
+
+lint:
+	./scripts/lint.sh
 
 test-e2e:
 	./scripts/test-e2e.sh

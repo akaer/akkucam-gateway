@@ -3,6 +3,7 @@ package ppcs
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -212,7 +213,8 @@ func (c *controlClient) request(ctx context.Context, requestType uint16, request
 }
 
 func errorsAsTimeout(err error, target *net.Error) bool {
-	if netErr, ok := err.(net.Error); ok {
+	var netErr net.Error
+	if errors.As(err, &netErr) {
 		*target = netErr
 		return netErr.Timeout()
 	}

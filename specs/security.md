@@ -50,6 +50,10 @@ Akzeptierte Risiken:
 - FFmpeg verarbeitet nicht vertrauenswürdige Kamerabitstreams
 - Alpine-/FFmpeg-Updates müssen regelmäßig eingespielt werden
 
+## Statische Analyse
+
+`make lint` prüft Go-Code, Browserquellen, Skripte, Dockerfile und Workflows in gepinnten Container-Images (ADR-0033). Blockierend sind `gosec`, `govulncheck`, Semgrep mit den Projektregeln für Cloudfreiheit und Secret-Haltung sowie Shellcheck, Hadolint und Actionlint. Der Scan deckt keine CVEs im Laufzeit-Image ab; dieser Bildscan ist als Phase 2 in `specs/roadmap.md` notiert.
+
 ## Empfohlene Härtung
 
 1. Gateway nur in vertrauenswürdigem VLAN betreiben.

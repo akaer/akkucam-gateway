@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS build
+FROM golang:1.27.4-alpine AS build
 WORKDIR /src
 ARG COMMIT=
 COPY go.mod ./
@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go test ./... && \
       -o /out/akkucam-gateway ./cmd/gateway
 
 FROM alpine:3.21
+# hadolint ignore=DL3018
 RUN apk add --no-cache ffmpeg && addgroup -S gateway && adduser -S -G gateway gateway
 WORKDIR /app
 COPY --from=build /out/akkucam-gateway /usr/local/bin/akkucam-gateway
@@ -18,5 +19,5 @@ COPY web /app/web
 USER gateway
 EXPOSE 8080/tcp 7200/udp 32108/udp
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/api/health || exit 1
+  CMD ["wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/health"]
 ENTRYPOINT ["/usr/local/bin/akkucam-gateway"]

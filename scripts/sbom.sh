@@ -15,7 +15,7 @@
 # never needs access to the Docker socket.
 set -eu
 
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 IMAGE="${1:-${AKKUCAM_IMAGE:-akkucam-gateway:sbom}}"
 SYFT_IMAGE="${SYFT_IMAGE:-anchore/syft:v1.57.2}"
 OUT="${SBOM_DIR:-$ROOT/sbom}"

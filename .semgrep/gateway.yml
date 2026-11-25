@@ -1,0 +1,56 @@
+# Project invariants that the generic rulesets do not cover.
+# Referenced from ADR-0033 and specs/security.md.
+rules:
+  - id: gateway-no-outbound-http-client
+    languages: [go]
+    severity: ERROR
+    message: >-
+      Der Gateway spricht nur LAN-UDP und lokales HTTP aus (ADR-0003). Ein
+      ausgehender HTTP-Client braucht eine neue Entscheidung.
+    patterns:
+      - pattern-either:
+          - pattern: http.Get(...)
+          - pattern: http.Post(...)
+          - pattern: http.PostForm(...)
+          - pattern: http.Head(...)
+          - pattern: http.NewRequest(...)
+          - pattern: http.NewRequestWithContext(...)
+          - pattern: http.DefaultClient.Do(...)
+
+  - id: gateway-no-outbound-tcp
+    languages: [go]
+    severity: ERROR
+    message: >-
+      Discovery und PPCS laufen ausschliesslich ueber UDP im LAN (ADR-0003).
+      Ein ausgehender TCP-Dial braucht eine neue Entscheidung.
+    patterns:
+      - pattern-either:
+          - pattern: net.Dial(...)
+          - pattern: net.DialTimeout(...)
+          - pattern: net.DialTCP(...)
+          - pattern: net.DialIP(...)
+
+  - id: gateway-secret-key-in-browser-storage
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Sicherheitscodes bleiben im Browser-RAM (ADR-0007, ADR-0012). Nicht in
+      localStorage oder sessionStorage schreiben.
+    patterns:
+      - pattern-regex: (local|session)Storage\.setItem\(\s*['"][^'"]*(code|pin|secret|token|password)
+
+  - id: gateway-secret-value-in-browser-storage
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Sicherheitscodes bleiben im Browser-RAM (ADR-0007, ADR-0012). Nicht in
+      localStorage oder sessionStorage schreiben.
+    patterns:
+      - pattern-either:
+          - pattern: localStorage.setItem($K, $V)
+          - pattern: sessionStorage.setItem($K, $V)
+          - pattern: localStorage[$K] = $V
+          - pattern: sessionStorage[$K] = $V
+      - metavariable-regex:
+          metavariable: $V
+          regex: (?i).*(code|pin|secret|token|password).*

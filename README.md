@@ -108,10 +108,11 @@ Details and open fields: [specs/protocol.md](specs/protocol.md).
 
 ```bash
 make test        # go vet, unit, API and integration tests, race detector, image build
+make lint        # static analysis in pinned images (Go, JS, shell, Dockerfile)
 make test-e2e    # Playwright in Chromium and Firefox
 ```
 
-`make test` needs only Docker, no local Go. The browser run expects a running gateway (`make up`) and uses Playwright in a pinned image. Test setup, hardware runs and coverage are described in [specs/testing.md](specs/testing.md). CI runs the Go tests, the image build, SBOM generation and Playwright.
+`make test` and `make lint` need only Docker, no local Go. The browser run expects a running gateway (`make up`) and uses Playwright in a pinned image. Test setup, hardware runs and coverage are described in [specs/testing.md](specs/testing.md). CI runs the static analysis, the Go tests, the image build, SBOM generation and Playwright.
 
 ## Development
 
