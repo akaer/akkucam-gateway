@@ -1,35 +1,43 @@
-# ADR-0012: Sicherheitscode bis zum Seiten-Reload im Browser-RAM
+# ADR-0012: Security code in browser RAM until page reload
 
 - Status: Accepted
-- Datum: 2026-11-21
-- Ersetzt: [ADR-0007](0007-credentials-in-memory-only.md)
-- Ergänzt durch: [ADR-0025](0025-per-hub-security-codes.md) (ein Code je Basisstation)
+- Date: 2026-11-21
+- Supersedes: [ADR-0007](0007-credentials-in-memory-only.md)
+- Amended by: [ADR-0025](0025-per-hub-security-codes.md) (one code per base station)
 
-## Kontext
+## Context
 
-Mehrere Kanäle erfordern mehrere authentifizierte PPCS-Sitzungen. Eine erneute Codeeingabe pro Kanal macht „Alle starten“ und Kanalwechsel unpraktisch.
+Several channels need several authenticated PPCS sessions. Entering the code
+again for every channel makes "Start all" and channel switching impractical.
 
-## Entscheidung
+## Decision
 
-Der Sicherheitscode wird je Basisstation beim Laden ihrer Kameraliste abgefragt und ausschließlich in einer JavaScript-Variable gehalten. Er bleibt bis Seiten-Reload, Tab-Schließen oder explizitem „Code entfernen“ verfügbar. Es erfolgt keine Speicherung in LocalStorage, SessionStorage, Cookie oder Serverdatei. Mit mehreren Basisstationen hält der Browser einen Code pro DID (ADR-0025).
+The browser asks for the security code per base station when it loads that
+station's camera list and keeps it only in a JavaScript variable. It stays
+available until page reload, tab close or an explicit "Remove code". It is never
+written to localStorage, sessionStorage, a cookie or a server file. With several
+base stations, the browser keeps one code per DID (ADR-0025).
 
-## Begründung
+## Reasoning
 
-- ein Codeprompt pro Browsersitzung
-- parallele Starts und Kanalwechsel bleiben komfortabel
-- Reload entfernt das Secret zuverlässig aus dem Anwendungszustand
-- keine persistente Browserablage
+- One code prompt per browser session
+- Parallel starts and channel switches stay convenient
+- Reload removes the secret from application state reliably
+- No persistent browser storage
 
-## Konsequenzen
+## Consequences
 
-- JavaScript im Seitenkontext kann auf den Code zugreifen; deshalb dürfen keine externen Laufzeitskripte eingebunden werden.
-- laufende Streams bleiben nach „Code entfernen“ aktiv, neue Starts erfordern erneute Eingabe.
-- der Server erhält den Code weiterhin nur je Sessionaufbau und persistiert ihn nicht.
+- JavaScript in the page context can reach the code, so no external runtime
+  scripts may be included.
+- Running streams stay active after "Remove code"; new starts need the code
+  again.
+- The server still receives the code only per session setup and does not persist
+  it.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Das Eingabefeld für den Code trägt `autocomplete="off"`. Passwortmanager und
-Browser-Autofill sollen den Gerätecode nicht dauerhaft speichern; das wäre
-eine Persistenz, die diese Entscheidung ausschließt (ADR-0028). Die
-Oberflächentexte nennen den Speicherort außerdem „Arbeitsspeicher“, nicht
-„Browserspeicher“, weil letzteres auch `localStorage` bezeichnet.
+The code input carries `autocomplete="off"`. Password managers and browser
+autofill should not store the device code permanently; that would be the kind of
+persistence this decision rules out (ADR-0028). The UI copy also calls the
+storage location "working memory" instead of "browser storage", because the
+latter also means `localStorage`.

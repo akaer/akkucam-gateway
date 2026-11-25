@@ -1,45 +1,56 @@
-# ADR-0019: Teststruktur: Arrange/Act/Assert und ein Verhalten pro Test
+# ADR-0019: Test structure: Arrange/Act/Assert and one behavior per test
 
 - Status: Accepted
-- Datum: 2026-11-22
+- Date: 2026-11-22
 
-## Kontext
+## Context
 
-Viele Tests prüfen mehrere unabhängige Dinge in einer Funktion. Namen mit „And“ erschweren die Zuordnung eines Fehlschlags. Die drei Phasen Arrange, Act und Assert sind nicht überall sichtbar. Dadurch werden Tests länger, schwerer lesbar und bei Fehlschlägen unpräzise.
+Many tests checked several independent things in one function. Names containing
+"And" made it hard to attribute a failure. The three phases Arrange, Act and
+Assert were not visible everywhere. Tests grew longer, harder to read and
+imprecise on failure.
 
-## Entscheidung
+## Decision
 
-- Jeder Test folgt **Arrange/Act/Assert**. Die Phasen werden mit Kommentaren markiert, wenn sie nicht offensichtlich sind.
-- **Ein Test prüft ein Verhalten.** Mehrere Assertions sind erlaubt, wenn sie dasselbe Ergebnis beschreiben (z. B. mehrere Felder eines geparsten Objekts).
-- Varianten desselben Verhaltens laufen als **Tabellen-Subtests** mit eigenem AAA.
-- Testnamen beschreiben das Verhalten und enthalten **kein „And“**.
-- **Integrationstests** werden in getrennte Tests und Sessions aufgeteilt, wenn sie unabhängige Ergebnisse prüfen. Das gilt auch auf Kosten der Laufzeit.
-- **Hardwaretests** werden ebenfalls aufgeteilt. Jede Session prüft genau ein Ergebnis.
-- **Fuzz-Targets** sind die einzige Ausnahme: ein Target = ein Parser/Verhalten, ohne AAA-Kommentare.
-- Helfer dürfen das Arrange kapseln, aber nicht Act oder Assert verdecken.
+- Every test follows **Arrange/Act/Assert**. Comments mark the phases when they
+  are not obvious.
+- **One test checks one behavior.** Several assertions are allowed when they
+  describe the same result (for example several fields of a parsed object).
+- Variants of the same behavior run as **table subtests** with their own AAA.
+- Test names describe the behavior and contain **no "And"**.
+- **Integration tests** split into separate tests and sessions when they check
+  independent results. That applies even at the cost of runtime.
+- **Hardware tests** split as well. Every session checks exactly one result.
+- **Fuzz targets** are the only exception: one target equals one parser or
+  behavior, without AAA comments.
+- Helpers may encapsulate Arrange but must not hide Act or Assert.
 
-## Begründung
+## Reasoning
 
-- Ein Fehlschlag zeigt sofort, welches Verhalten betroffen ist.
-- Kleinere Tests sind leichter zu lesen, zu reviewen und zu ändern.
-- Getrennte Sessions verhindern, dass ein Fehler in einem Teil die Beobachtung eines anderen Teils verdeckt.
-- Die AAA-Kommentare machen die Testabsicht ohne Vorwissen sichtbar.
+- A failure shows immediately which behavior is affected.
+- Smaller tests are easier to read, review and change.
+- Separate sessions stop a failure in one part from hiding the observation of
+  another part.
+- The AAA comments make the test intent visible without prior knowledge.
 
-## Betrachtete Alternativen
+## Alternatives considered
 
-- **Alles in einem Test belassen:** weniger Laufzeit, aber unklare Fehlschläge und stärkere Kopplung.
-- **Nur bei neuen Tests anwenden:** bestehende Tests bleiben inkonsistent.
-- **Streng eine Assertion pro Test:** würde zusammengehörige Vertragsfelder unnötig zersplittern.
+- **Keep everything in one test:** less runtime, but unclear failures and tighter
+  coupling.
+- **Apply only to new tests:** existing tests stay inconsistent.
+- **Strictly one assertion per test:** would split related contract fields
+  without need.
 
-## Konsequenzen
+## Consequences
 
-- Mehr Testfunktionen und teils längere Laufzeit, insbesondere bei Integration und Hardware.
-- Gemeinsame Helfer für wiederkehrendes Arrange.
-- `AGENTS.md`, `specs/testing.md` und `tests/README.md` dokumentieren die Konvention.
-- Neue Tests folgen der Konvention; bestehende werden schrittweise angepasst.
+- More test functions and partly longer runtime, especially for integration and
+  hardware.
+- Shared helpers for recurring Arrange code.
+- `AGENTS.md`, `specs/testing.md` and `tests/README.md` document the convention.
+- New tests follow the convention; existing tests are adjusted step by step.
 
-## Verweise
+## References
 
-- ADR-0018: Test- und Codequalitätskonventionen
+- ADR-0018: Test and code quality conventions
 - `specs/testing.md`
 - `tests/README.md`

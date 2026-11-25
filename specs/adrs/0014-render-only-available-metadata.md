@@ -1,39 +1,47 @@
-# ADR-0014: Nur tatsächlich verfügbare Metadaten anzeigen
+# ADR-0014: Render only metadata that is actually available
 
 - Status: Accepted
-- Datum: 2026-11-21
+- Date: 2026-11-21
 
-## Kontext
+## Context
 
-Nicht jedes Protokollobjekt liefert dieselben Metadaten. Insbesondere enthält die Hub-Kameraliste keine Kamera-MAC-Adresse. Generische Platzhalter wie „unbekannt“, „nicht gemeldet“ oder leere Datenfelder erzeugen visuelles Rauschen und suggerieren einen Informationsgehalt, den der Gateway nicht besitzt.
+Not every protocol object delivers the same metadata. In particular, the hub
+camera list contains no camera MAC address. Generic placeholders such as
+"unknown", "not reported" or empty data fields create visual noise and suggest
+information the gateway does not have.
 
-## Entscheidung
+## Decision
 
-Die Oberfläche rendert ein Metadatenfeld nur, wenn ein konkreter Wert aus einer verifizierten Quelle vorhanden ist. Fehlende Felder werden vollständig ausgelassen. Es werden keine Werte geraten, abgeleitet oder durch generische Texte ersetzt.
+The interface renders a metadata field only when a concrete value from a
+verified source exists. Missing fields are omitted entirely. No value is
+guessed, derived or replaced by generic text.
 
-Vorhandene Werte werden vollständig angezeigt. Lange Bezeichner wie DID oder MAC-Adresse brechen bei Bedarf um, statt per Ellipse abgeschnitten zu werden.
+Existing values are shown in full. Long identifiers such as the DID or the MAC
+address wrap when needed instead of being cut off with an ellipsis.
 
-Funktionale UI-Bezeichnungen wie „Kanal 2“ sind davon ausgenommen: Sie dienen der Bedienung und sind keine behaupteten Gerätemetadaten.
+Functional UI labels such as "Channel 2" are exempt: they serve operation and
+are not claimed device metadata.
 
-## Begründung
+## Reasoning
 
-- höhere Informationsdichte und weniger Rauschen
-- klare Trennung zwischen Wissen und Nichtwissen
-- keine irreführenden Aussagen
-- technisch affine Nutzer sehen nur belastbare Daten
+- Higher information density and less noise
+- A clear separation between knowledge and non-knowledge
+- No misleading statements
+- Technical users see only reliable data
 
-## Konsequenzen
+## Consequences
 
-- Kamera-MAC wird aktuell nicht angezeigt.
-- Hub-MAC wird nur bei erfolgreichem ARP-Lookup angezeigt.
-- Modell, Firmware, MCU-Version, Name oder Motion-State erscheinen jeweils nur bei gültiger Protokollantwort.
-- Karten können je nach Gerät unterschiedlich viele Metadatenzeilen besitzen.
-- Metadatenzeilen werden bei langen Werten höher, weil der Wert umbricht statt abgeschnitten zu werden.
+- The camera MAC is not shown at the moment.
+- The hub MAC appears only after a successful ARP lookup.
+- Model, firmware, MCU version, name or motion state appear only with a valid
+  protocol reply.
+- Tiles can carry different numbers of metadata rows depending on the device.
+- Metadata rows grow taller for long values because the value wraps instead of
+  being cut off.
 
-## Nachtrag 2026-11-24
+## Addendum 2026-11-24
 
-Die Pflicht, Werte vollständig zu zeigen, gilt für Metadatenfelder (Drawer,
-Diagnose, Hub-Details); sie brechen um. Kachel-Beschriftungen dürfen dagegen
-per Ellipse kürzen, weil die Kachel eine feste Fläche hat: Der vollständige
-Name steht im Details-Drawer. Funktionale Beschriftungen („Kamera 2“,
-„Basisstation“) bleiben wie bisher von der Regel ausgenommen.
+The obligation to show values in full applies to metadata fields (drawer,
+diagnostics, hub details); they wrap. Tile labels may truncate with an ellipsis
+because the tile has a fixed area: the full name sits in the details drawer.
+Functional labels ("Camera 2", "Base station") remain exempt as before.
