@@ -1,19 +1,19 @@
-# Tasks: Multi-Camera-Dashboard
+# Tasks: Multi-camera dashboard
 
-- [x] IO-Control 40962 und Antwortparser
-- [x] Unit- und Fake-Hub-Integrationstest für Kameraliste
+- [x] IO-Control 40962 and reply parser
+- [x] unit and fake hub integration test for the camera list
 - [x] API `/api/channels`
-- [x] Stream-ID pro DID/Kanal
-- [x] Manager-Test für parallele Kanäle
-- [x] responsive Kartenoberfläche
-- [x] Code einmal pro Seitenlebensdauer
-- [x] Einzelstart/-stop und Alle starten/beenden
-- [x] Fullscreen pro Karte
-- [x] Light/Dark-Theme mit Systemstandard
-- [x] Diagnosebereich und manueller Fallback
-- [x] realer Paralleltest mit Kanal 1 und 2
-- [x] Inventar-/Motion-Aktionen bei aktiven Streams in UI und API sperren
-- [x] Hub- und Kamerametadaten nur bei vorhandenen Werten rendern
-- [x] ADR für ausgelassene nicht verfügbare Metadaten
-- [x] Motion-Toggle als Read-Modify-Write-Verify
-- [x] Docker-Healthcheck gegen `/api/health`
+- [x] stream ID per DID/channel
+- [x] manager test for parallel channels
+- [x] responsive tile interface
+- [x] code once per page lifetime
+- [x] single start/stop and start/stop all
+- [x] fullscreen per tile
+- [x] light and dark theme with system default
+- [x] diagnostics area and manual fallback
+- [x] real parallel test with channels 1 and 2
+- [x] lock inventory and motion actions while streams run in UI and API
+- [x] render hub and camera metadata only when values exist
+- [x] ADR for omitted unavailable metadata
+- [x] motion toggle as read-modify-write-verify
+- [x] Docker health check against `/api/health`

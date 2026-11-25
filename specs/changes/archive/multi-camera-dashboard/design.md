@@ -1,28 +1,29 @@
-# Design: Multi-Camera-Dashboard
+# Design: Multi-camera dashboard
 
 ## Backend
 
-- neuer Endpoint `POST /api/channels`
-- IO-Control `40962` liest Anzahl und 60-Byte-Kameraeinträge
-- Stream-ID enthält DID und 1-basierte Kanalnummer
-- Streammanager ersetzt nur identische DID/Kanal-Kombinationen
-- Kontroll-Handshakes bleiben serialisiert, Medienloops laufen parallel
+- new endpoint `POST /api/channels`
+- IO-Control `40962` reads the count and 60-byte camera entries
+- stream ID carries the DID and the 1-based channel number
+- the stream manager replaces only identical DID/channel combinations
+- control handshakes stay serialized, media loops run in parallel
 
 ## Frontend
 
-- Security-Code-Dialog, Code nur in JavaScript-Variable
-- dynamische Karten aus Hubantwort
-- „Alle starten“ startet Kanäle sequentiell; danach paralleler Betrieb
-- Statuspolling pro Stream-ID
-- HLS-Instanz pro Videokarte
-- nativer Fullscreen beziehungsweise `webkitEnterFullscreen` auf iOS
-- Diagnosebereich mit manuellem Kanal-Fallback
-- CSS-Custom-Properties für Themes; Themepräferenz in LocalStorage
-- Metadatenfelder werden wertabhängig gerendert; fehlende Werte erzeugen keine Platzhalterzeilen
-- Metadaten und Live-Metriken sind standardmäßig zugeklappte `details/summary`-Bereiche (progressive disclosure)
+- security code dialog, code only in a JavaScript variable
+- dynamic tiles from the hub reply
+- "Start all" starts channels sequentially; parallel operation follows
+- status polling per stream ID
+- one HLS instance per video tile
+- native fullscreen or `webkitEnterFullscreen` on iOS
+- diagnostics area with a manual channel fallback
+- CSS custom properties for themes; theme preference in LocalStorage
+- metadata fields render based on value; missing values create no placeholder rows
+- metadata and live metrics are collapsed `details/summary` areas by default
+  (progressive disclosure)
 
-## Fehlerverhalten
+## Error behavior
 
-- schlägt die Kameraliste fehl, wird kein Kanal erfunden
-- Diagnosebereich öffnet sich und bietet manuelle Slots 1–4
-- Fehler eines Kanals beendet nicht die übrigen Streams
+- if the camera list fails, no channel is invented
+- the diagnostics area opens and offers manual slots 1 to 4
+- a channel error does not stop the other streams

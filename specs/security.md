@@ -1,74 +1,99 @@
-# Sicherheit und Datenschutz
+# Security and privacy
 
-## Vertrauensmodell
+## Trust model
 
-Der aktuelle Gateway ist für ein vertrauenswürdiges Heimnetz vorgesehen. Jede Person, die die HTTP-API erreichen kann, kann Discovery und Sessionversuche auslösen. Vor einer Veröffentlichung über VLAN- oder Internetgrenzen ist zwingend HTTP-Authentifizierung beziehungsweise ein authentifizierender Reverse Proxy erforderlich.
+The current gateway targets a trusted home network. Anyone who can reach the HTTP
+API can trigger discovery and session attempts. Before exposing it across VLAN or
+internet boundaries, HTTP authentication or an authenticating reverse proxy is
+mandatory.
 
-## Sicherheitscode
+## Security code
 
-- wird vom Browser je Basisstation beim Laden der Kameraliste abgefragt
-- bleibt bis Reload, Tab-Schließen oder explizitem Entfernen in einer JavaScript-Variable, adressiert über die DID der Basisstation (eine Map, ein Code pro Hub)
-- wird für weitere Kanalstarts, Inventarabfragen und Motion-Änderungen an den Go-Prozess gesendet und dort nur für den jeweiligen Sitzungsaufbau gehalten
-- ein von der Basisstation abgelehnter Code (`unauthorized`) wird im Browser verworfen, damit der nächste Versuch erneut fragt
-- wird nicht in LocalStorage, SessionStorage, Cookies, Dateien, Datenbanken, HLS-Pfaden oder Logs gespeichert
-- Themepräferenz und Sprachwahl dürfen in LocalStorage liegen; sie enthalten keine Zugangsdaten
-- wird nach Handlerverarbeitung aus dem Request-Struct entfernt
-- Go-Strings können nicht garantiert aktiv aus dem Speicher gelöscht werden; „nur im RAM“ bedeutet daher keine kryptografisch garantierte Speicherlöschung
-- HTTP ist im LAN unverschlüsselt; ein Angreifer mit Mitschnittmöglichkeit kann den Code sehen
+- The browser asks for it per base station when the camera list loads.
+- It stays in a JavaScript variable until reload, tab close or explicit removal,
+  addressed by the base station DID (one map, one code per hub).
+- The browser sends it to the Go process for further channel starts, inventory
+  requests and motion changes; the process holds it only for the matching session
+  setup.
+- A code the base station rejects (`unauthorized`) is discarded in the browser so
+  the next attempt asks again.
+- It is not stored in localStorage, sessionStorage, cookies, files, databases, HLS
+  paths or logs.
+- Theme preference and language choice may live in localStorage; they contain no
+  credentials.
+- The handler removes it from the request struct after processing.
+- Go strings cannot be reliably wiped from memory; "RAM only" therefore means no
+  cryptographically guaranteed memory erasure.
+- HTTP is unencrypted on the LAN; an attacker who can capture traffic can see the
+  code.
 
-Für höhere Anforderungen soll TLS über einen lokalen Reverse Proxy eingesetzt werden.
+For higher requirements, use TLS through a local reverse proxy.
 
-## Cloudfreiheit
+## Cloud freedom
 
-Der Gateway sendet keine Pakete an die beobachteten Oguard-Verzeichnis-, Relay-, Wake-up- oder Firmwareendpunkte. Der lokale Ablauf nutzt UDP/7200 und UDP/32108 sowie den dynamischen Hub-Port.
+The gateway sends no packets to the observed Oguard directory, relay, wake-up or
+firmware endpoints. The local flow uses UDP/7200 and UDP/32108 plus the dynamic hub
+port.
 
-Diese Aussage gilt nur für den Gateway. Die unveränderte Basisstation kann unabhängig davon weiterhin eigene Internetverbindungen aufbauen. Vollständige Netztrennung erfordert Firewallregeln am Router, beispielsweise ausgehendes UDP/32100 und weiteren Internetzugriff der Hub-IP zu blockieren. Solche Regeln sind bewusst nicht Bestandteil des Containers.
+This statement covers the gateway only. The unchanged base station can still open
+its own internet connections. Complete network isolation needs firewall rules on
+the router, for example blocking outbound UDP/32100 and further internet access from
+the hub IP. Such rules are deliberately not part of the container.
 
-## Medien
+## Media
 
-- Videonutzdaten sind im lokalen Altprotokoll als H.264 erkennbar und nicht Ende-zu-Ende verschlüsselt.
-- Jeder Teilnehmer mit ausreichender LAN-Mitschnittposition kann potenziell Videodaten beobachten.
-- HLS wird unverschlüsselt über HTTP ausgeliefert.
-- HLS-Dateien sind temporär, aber während des Betriebs für alle HTTP-Clients erreichbar.
+- Video payload is recognizable as H.264 in the local legacy protocol and is not
+  end-to-end encrypted.
+- Any participant with a sufficient LAN capture position can potentially observe
+  video data.
+- HLS is served unencrypted over HTTP.
+- HLS files are temporary, but reachable by every HTTP client while the gateway
+  runs.
 
 ## Container
 
-Positive Eigenschaften:
+Positive properties:
 
-- Prozess läuft als unprivilegierter Benutzer
-- kein `privileged: true`
-- kein `CAP_NET_RAW`
-- keine Docker-Socket-Mounts
-- statisches Go-Binary
-- keine persistente Secret-Konfiguration
-- HTTP-Healthcheck enthält keine Gerätekennung oder Zugangsdaten
+- the process runs as an unprivileged user
+- no `privileged: true`
+- no `CAP_NET_RAW`
+- no Docker socket mounts
+- static Go binary
+- no persistent secret configuration
+- the HTTP health check contains no device identifier or credentials
 
-Akzeptierte Risiken:
+Accepted risks:
 
-- `network_mode: host` hebt Docker-Netzwerkisolation auf
-- HTTP-Port 8080 bindet standardmäßig an alle Hostinterfaces
-- FFmpeg verarbeitet nicht vertrauenswürdige Kamerabitstreams
-- Alpine-/FFmpeg-Updates müssen regelmäßig eingespielt werden
+- `network_mode: host` removes Docker network isolation
+- HTTP port 8080 binds to all host interfaces by default
+- FFmpeg processes untrusted camera bitstreams
+- Alpine and FFmpeg updates must be applied regularly
 
-## Statische Analyse
+## Static analysis
 
-`make lint` prüft Go-Code, Browserquellen, Skripte, Dockerfile und Workflows in gepinnten Container-Images (ADR-0033). Blockierend sind `gosec`, `govulncheck`, Semgrep mit den Projektregeln für Cloudfreiheit und Secret-Haltung sowie Shellcheck, Hadolint und Actionlint. Der Scan deckt keine CVEs im Laufzeit-Image ab; dieser Bildscan ist als Phase 2 in `specs/roadmap.md` notiert.
+`make lint` checks Go code, browser sources, scripts, Dockerfile and workflows in
+pinned container images (ADR-0033). Blocking checks are `gosec`, `govulncheck`,
+Semgrep with the project rules for cloud freedom and secret handling, plus
+Shellcheck, Hadolint and Actionlint. The scan does not cover CVEs in the runtime
+image; that image scan is noted as phase 2 in `specs/roadmap.md`.
 
-## Empfohlene Härtung
+## Recommended hardening
 
-1. Gateway nur in vertrauenswürdigem VLAN betreiben.
-2. Port 8080 per Host-Firewall auf lokale Quellnetze begrenzen.
-3. Reverse Proxy mit TLS und Authentifizierung vorschalten.
-4. Internetzugriff der Basisstation blockieren, wenn Push-/Cloudfunktionen entbehrlich sind.
-5. Containerimage regelmäßig neu bauen.
-6. Keine realen Sicherheitscodes in Issues, Logs oder Versionsverwaltung aufnehmen.
+1. Run the gateway only in a trusted VLAN.
+2. Limit port 8080 to local source networks through the host firewall.
+3. Put a reverse proxy with TLS and authentication in front.
+4. Block internet access from the base station when push and cloud features are
+   dispensable.
+5. Rebuild the container image regularly.
+6. Keep real security codes out of issues, logs and version control.
 
-## Bekannte Altprotokollrisiken
+## Known legacy protocol risks
 
 - AES-128-ECB
-- nullaufgefüllter Sicherheitscode als AES-Key
-- proprietäre XOR-Obfuskation statt moderner Transportverschlüsselung
-- Broadcast-Discovery ohne Authentifizierung
-- Geräte-DID im LAN sichtbar
+- zero-padded security code as the AES key
+- proprietary XOR obfuscation instead of modern transport encryption
+- broadcast discovery without authentication
+- device DID visible on the LAN
 
-Der Gateway reproduziert diese Mechanismen nur zur Interoperabilität und betrachtet sie nicht als moderne Sicherheitskontrollen.
+The gateway reproduces these mechanisms only for interoperability and does not treat
+them as modern security controls.

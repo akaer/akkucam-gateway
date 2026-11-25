@@ -1,27 +1,28 @@
-# Architektur
+# Architecture
 
-## Systemkontext
+## System context
 
 ```mermaid
 flowchart LR
-    Browser[Webbrowser] -- HTTP / HLS --> Gateway[Go Gateway im Dockercontainer]
-    Gateway -- UDP 7200 / 32108 --> Hub[AkkuCam-Basisstation SMH-T1R]
-    Hub -- proprietärer Funk --> Cam1[Akku-Cam Kanal 1]
-    Hub -- proprietärer Funk --> Cam2[Akku-Cam Kanal 2]
-    Gateway -. keine Verbindung .-> Cloud[Oguard / Hersteller-Cloud]
+    Browser[Web browser] -- HTTP / HLS --> Gateway[Go gateway in Docker container]
+    Gateway -- UDP 7200 / 32108 --> Hub[AkkuCam base station SMH-T1R]
+    Hub -- proprietary radio --> Cam1[AkkuCam channel 1]
+    Hub -- proprietary radio --> Cam2[AkkuCam channel 2]
+    Gateway -. no connection .-> Cloud[Oguard / vendor cloud]
 ```
 
-Die Basisstation bleibt für Funk, Wake-up und Kamera-Kopplung zuständig. Der Gateway ersetzt den lokalen Netzwerk- und Medienanteil der App.
+The base station stays responsible for radio, wake-up and camera coupling. The
+gateway replaces the local network and media part of the app.
 
-## Containerarchitektur
+## Container architecture
 
 ```mermaid
 flowchart TB
-    HTTP[net/http API + statische UI]
+    HTTP[net/http API + static UI]
     Discovery[internal/discovery]
     PPCS[internal/ppcs]
-    Manager[internal/stream Manager]
-    FFmpeg[FFmpeg Remuxer]
+    Manager[internal/stream manager]
+    FFmpeg[FFmpeg remuxer]
     HLS[/tmp/akkucam-hls]
 
     HTTP --> Discovery
@@ -32,110 +33,148 @@ flowchart TB
     HTTP --> HLS
 ```
 
-## Komponenten
+## Components
 
 ### `cmd/gateway`
 
-- Einstiegspunkt, Konfiguration über Umgebungsvariablen
-- startet den HTTP-Server und verbindet die Pakete
-- keine Routing-, Validierungs- oder Protokollogik
+- entry point, configuration through environment variables
+- starts the HTTP server and wires the packages
+- no routing, validation or protocol logic
 
 ### `internal/gateway`
 
-- HTTP-Routing, Eingabevalidierung und Fehler-Mapping
-- eine einzige Routentabelle als Quelle für Pfade und Methoden
-- Contract-Tests für API und OpenAPI
+- HTTP routing, input validation and error mapping
+- one route table as the source for paths and methods
+- contract tests for the API and OpenAPI
 
 ### `internal/apierr`
 
-- stabile Fehlercodes und das flache JSON-Fehlerformat
-- zentrale Abbildung von Sentinel-Fehlern auf HTTP-Status
+- stable error codes and the flat JSON error format
+- central mapping from sentinel errors to HTTP status
 
 ### `internal/openapi`
 
-- eingebetteter OpenAPI-3.0-Vertrag
-- Auslieferung unter `/api/openapi.json`; die Swagger UI liegt unter `web/swagger/`
+- embedded OpenAPI 3.0 contract
+- served at `/api/openapi.json`; the Swagger UI sits under `web/swagger/`
 
 ### `internal/discovery`
 
-- WAI0/WAI1 auf UDP/7200
-- PPPP-LAN-Discovery auf UDP/32108
-- Zusammenführung nach IP
-- bevorzugt die vollständigere DID, damit `CMAG` eine bereits bekannte vollständige DID nicht überschreibt
+- WAI0/WAI1 on UDP/7200
+- PPPP LAN discovery on UDP/32108
+- merge by IP
+- prefers the more complete DID so `CMAG` does not overwrite a known complete DID
 
 ### `internal/ppcs`
 
-- PPPP-Header und PUNCH-Pakete
-- direkter LAN-Handshake
-- AES-Challenge-Authentifizierung
-- DRW-Datenkanäle, ACKs und Keepalive
-- Fragmentreihenfolge und App-Frame-Reassembly
-- IO-Control für StartVideo, StartAudio und Batterie
-- H.264-Erkennung und Dekapselung
+- PPPP header and PUNCH packets
+- direct LAN handshake
+- AES challenge authentication
+- DRW data channels, ACKs and keepalive
+- fragment order and app frame reassembly
+- IO-Control for StartVideo, StartAudio and battery
+- H.264 detection and decapsulation
 
 ### `internal/stream`
 
-- genau ein aktiver Stream pro DID und Kanal
-- unterschiedliche Kanäle derselben Basisstation laufen parallel
-- ersetzt beim erneuten Start nur einen bestehenden Stream desselben Kanals
-- startet und beendet FFmpeg
-- zählt H.264-Nutzdatenbytes pro Sekunde
-- hält flüchtige Laufzeitmetadaten wie Kanal, Akku und Uptime
+- exactly one active stream per DID and channel
+- different channels of the same base station run in parallel
+- a restart replaces only an existing stream of the same channel
+- starts and stops FFmpeg
+- counts H.264 payload bytes per second
+- keeps transient runtime metadata such as channel, battery and uptime
 
-### Weboberfläche
+### Web interface
 
-- Vanilla HTML, CSS und JavaScript
-- lokal gebündeltes `hls.js`
-- keine externen Laufzeitressourcen
-- Sicherheitscode wird per Browserdialog je Basisstation abgefragt, im Browser-RAM unter der DID gehalten und nicht gespeichert (ADR-0012, ADR-0025)
-- jede geladene Basisstation erscheint in einer gemeinsamen Live-Wand; beim Laden einer weiteren Station bleiben alle bisherigen Streams und Kacheln erhalten (ADR-0026, ADR-0027)
-- nach dem ersten Laden ersetzt die Wand die Setup-Seite; der Hub-Manager öffnet die Setup-Seite zum Hinzufügen weiterer Stationen
-- Setup und Wand teilen sich eine Vollbreiten-Hülle mit kompaktem Hinweisbalken, Werkzeugleisten-Stil und 16-px-Rändern; die Setup-Seite nutzt eine Setup-Leiste, einen Empty State und das vollbreite Hub-Raster
-- Auto-Matrix, Fokus und Komfort berechnen Spalten und Kachelgrößen aus Kameraanzahl und Viewport; Kacheln beginnen oben, ungerade Anzahlen ergeben leere Rasterzellen
-- Hub-Filterchips blenden Stationen aus, ohne Streams zu beenden; der Hub-Manager steuert Start/Stop und Codes pro Station
-- globale Aktionen „Alle Basisstationen starten“ und „Alle Basisstationen beenden“ starten bzw. beenden alle Kanäle aller geladenen Hubs; jede Station bleibt zusätzlich einzeln steuerbar
-- Inventar- und Bewegungsaktionen sind gesperrt, solange irgendein Stream läuft – passend zur API, die bei aktiven Streams `409 conflict` liefert
-- Klick auf eine Kachel öffnet den Details-Drawer; laufende Streams zeigen Bitrate, FPS und Akku dauerhaft als Overlay unten links (abschaltbar, ADR-0031)
-- der Fokus-Streifen zeichnet Miniatur-Livebilder aus den vorhandenen Videoelementen auf Canvas; nicht sichtbare Videos bleiben im offscreen `#stream-holder` und behalten ihre HLS-Instanz
-- Ansichts-, Filter- und Sprachwechsel hängen vorhandene `<video>`-Elemente und HLS-Instanzen um, statt sie neu zu erzeugen
-- iPhone-Größen nutzen eine kompakte Wand-Leiste mit Filter-Pill, Start/Stop und Menü-Sheet; iPad/Desktop behalten die volle Leiste (ADR-0027)
-- die gewählte Wand-Ansicht liegt in `localStorage['akkucam-wall-view']`; der Einstellungsdialog kann sie zurücksetzen
-- `web/i18n.js` und `web/locales/{en,de}.json` liefern die zweisprachige Oberfläche (ADR-0021)
-- Englisch ist Quell- und Fallbacksprache; `de*`-Browser starten auf Deutsch
-- Sprachwechsel läuft ohne Reload und unterbricht keine Streams
-- `web/e2e/` enthält Playwright-Tests für Sprache, Fehlercodes, Branding, Live-Wand und optional echte Hardware
-- die API bleibt englisch; die UI übersetzt stabile Fehlercodes clientseitig
-- Markenzeichen und Favicon nutzen das lokal gebündelte Font-Awesome-Kamera-Icon (`web/icon-light.svg`, `web/icon-dark.svg`); beide Varianten folgen dem Theme (ADR-0022)
-- Markenname und Schritt-Headings (`h2`) nutzen die lokal gebündelte Inter Tight (Regular/Bold) unter `web/fonts/`; kein Google-Fonts-CDN (ADR-0023)
-- `web/style.css` ist über Tokens aufgebaut: sechs Schriftstufen, zwei Gewichte (400/700), drei Radien, vier Schatten, zwei Blur-Ebenen; Textkontrast ≥ 4,5:1 in beiden Themes (ADR-0029)
-- Icons kommen aus einem Inline-Sprite in `index.html` (24-px-Raster, `currentColor`); Textglyphen, Icon-Fonts und CDN sind ausgeschlossen (ADR-0029)
-- UI-Texte sind vollständige Sätze aus den Katalogen; der Client formatiert Zahlen, Laufzeiten und Listen mit `Intl`, die API liefert Maschinenwerte (ADR-0028)
-- Kacheln sind `role="group"` mit `aria-label`; Icon-Buttons haben 44 px Trefferfläche, mobile Sheets beachten die Safe Area (ADR-0030)
-- Kachelrahmen und Schatten sind themeabhängig; das Light Theme nutzt helle, weiche Rahmen, das Dark Theme dezente helle Kanten
-- der Hero-Textblock entfällt; Discover und „Zurück zur Live-Wand“ sitzen in der Setup-Leiste
-- ein Info-Icon ganz rechts im Topbar (rechts neben der Theme-Umschaltung) öffnet ein modales Hilfe-Popup (`#help-dialog`) mit dem Ablauf in der aktiven Sprache (ADR-0024)
-- es gibt keinen Seiten-Footer und keine separate `web/licenses.html`; Lizenz- und API-Informationen öffnen sich über das Hilfe-Popup als scrollbarer Lizenzdialog mit MIT-Projektlizenz und allen Drittkomponenten
-- die SBOM (CycloneDX und SPDX) wird aus dem Laufzeitimage erzeugt und liegt unter `sbom/` (ADR-0022)
+- vanilla HTML, CSS and JavaScript
+- locally bundled `hls.js`
+- no external runtime resources
+- the security code is requested per base station in a browser dialog, held in
+  browser RAM under the DID and never stored (ADR-0012, ADR-0025)
+- every loaded base station appears in one shared live wall; loading another
+  station keeps all existing streams and tiles (ADR-0026, ADR-0027)
+- after the first load the wall replaces the setup page; the hub manager opens the
+  setup page to add more stations
+- setup and wall share a full-width shell with a compact notice bar, toolbar style
+  and 16 px gutters; the setup page uses a setup bar, an empty state and the
+  full-width hub grid
+- auto matrix, focus and comfort compute columns and tile sizes from the camera
+  count and the viewport; tiles start at the top and odd counts leave empty grid
+  cells
+- hub filter chips hide stations without stopping streams; the hub manager controls
+  start/stop and codes per station
+- global actions "Start all base stations" and "Stop all base stations" start or
+  stop every channel of every loaded hub; each station stays individually
+  controllable
+- inventory and motion actions are locked while any stream runs, matching the API
+  that returns `409 conflict` for active streams
+- a click on a tile opens the details drawer; running streams show bitrate, FPS and
+  battery permanently as an overlay in the bottom left (switchable, ADR-0031)
+- the focus strip draws live thumbnails from the existing video elements onto
+  canvas; invisible videos stay in the offscreen `#stream-holder` and keep their
+  HLS instance
+- view, filter and language changes move existing `<video>` elements and HLS
+  instances instead of recreating them
+- iPhone sizes use a compact wall bar with filter pill, start/stop and menu sheet;
+  iPad and desktop keep the full bar (ADR-0027)
+- the selected wall view sits in `localStorage['akkucam-wall-view']`; the settings
+  dialog can reset it
+- `web/i18n.js` and `web/locales/{en,de}.json` provide the bilingual interface
+  (ADR-0021)
+- English is the source and fallback language; `de*` browsers start in German
+- language switching runs without a reload and does not interrupt streams
+- `web/e2e/` contains Playwright tests for language, error codes, branding, the
+  live wall and optionally real hardware
+- the API stays English; the UI translates stable error codes on the client
+- brand mark and favicon use the locally bundled Font Awesome camera icon
+  (`web/icon-light.svg`, `web/icon-dark.svg`); both variants follow the theme
+  (ADR-0022)
+- brand name and step headings (`h2`) use the locally bundled Inter Tight
+  (regular/bold) under `web/fonts/`; no Google Fonts CDN (ADR-0023)
+- `web/style.css` is built on tokens: six type steps, two weights (400/700), three
+  radii, four shadows, two blur levels; text contrast at least 4.5:1 in both themes
+  (ADR-0029)
+- icons come from an inline sprite in `index.html` (24 px grid, `currentColor`);
+  text glyphs, icon fonts and CDNs are excluded (ADR-0029)
+- UI copy consists of whole sentences from the catalogs; the client formats
+  numbers, durations and lists with `Intl`, and the API delivers machine values
+  (ADR-0028)
+- tiles are `role="group"` with an `aria-label`; icon buttons have a 44 px hit
+  area, and mobile sheets respect the safe area (ADR-0030)
+- tile frames and shadows are theme-aware; the light theme uses light, soft frames,
+  the dark theme subtle light edges
+- the hero text block is removed; discover and "Back to the live wall" sit in the
+  setup bar
+- an info icon at the far right of the top bar (right of the theme toggle) opens a
+  modal help popup (`#help-dialog`) with the flow in the active language
+  (ADR-0024)
+- there is no page footer and no separate `web/licenses.html`; license and API
+  information open through the help popup as a scrollable license dialog with the
+  MIT project license and all third-party components
+- the SBOM (CycloneDX and SPDX) is generated from the runtime image and sits under
+  `sbom/` (ADR-0022)
 
-## Medienfluss
+## Media flow
 
-1. Kamera liefert H.264 über PPCS DRW-Kanal 1.
-2. Der Gateway sortiert Fragmente anhand der 16-Bit-Sequenznummer.
-3. App-Frames werden anhand ihrer 24-Bit-Längenangabe zusammengesetzt.
-4. Der verschlüsselte Frame-Header wird mit dem Session-Key entschlüsselt.
-5. Die Nutzdaten werden mit dem im Header angegebenen Byte de-obfuskiert.
-6. Annex-B-H.264 wird unverändert an FFmpeg geschrieben.
-7. FFmpeg setzt PTS/DTS und remuxt nach MPEG-TS/HLS; `-c:v copy` verhindert Neukodierung.
-8. Der Browser spielt HLS über das lokal gebündelte `hls.js` ab.
+1. The camera delivers H.264 over PPCS DRW channel 1.
+2. The gateway orders fragments by the 16-bit sequence number.
+3. App frames are assembled from their 24-bit length field.
+4. The encrypted frame header is decrypted with the session key.
+5. The payload is de-obfuscated with the byte given in the header.
+6. Annex-B H.264 is written unchanged to FFmpeg.
+7. FFmpeg sets PTS/DTS and remuxes to MPEG-TS/HLS; `-c:v copy` prevents
+   re-encoding.
+8. The browser plays HLS through the locally bundled `hls.js`.
 
-## Nebenläufigkeit
+## Concurrency
 
-- Discovery verwendet parallele WAI- und PPCS-Probes.
-- Kontroll-Sessions werden durch einen Prozess-Mutex serialisiert, um konkurrierende PUNCH-/Auth-Abläufe zu verhindern.
-- Der aktive Medienloop läuft in einer eigenen Goroutine.
-- FFmpeg läuft als Kindprozess und wird über Context-Cancellation beendet.
-- Bitratenmessung läuft in einer separaten Sekundentakt-Goroutine.
+- Discovery uses parallel WAI and PPCS probes.
+- A process mutex serializes control sessions to prevent competing PUNCH/auth
+  flows.
+- The active media loop runs in its own goroutine.
+- FFmpeg runs as a child process and is stopped through context cancellation.
+- Bitrate measurement runs in a separate one-second goroutine.
 
-## Laufzeitdaten
+## Runtime data
 
-HLS-Dateien werden ausschließlich unter `/tmp/akkucam-hls/<DID>/` gespeichert. Sie sind flüchtig und verschwinden beim Container-Neustart. Es gibt bewusst keine Videoarchivierung.
+HLS files are stored only under `/tmp/akkucam-hls/<DID>/`. They are transient and
+disappear on container restart. There is deliberately no video archive.

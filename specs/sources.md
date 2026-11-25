@@ -1,31 +1,45 @@
-# Quellen und Provenienz
+# Sources and provenance
 
-## Primärquellen
+## Primary sources
 
-- lokal vorliegende Basisstationsfirmware `1.0.0.12`
-- Live-Interoperabilitätstests gegen die eigene Hardware
-- lokale Protokollanalyse des Netzwerkverkehrs
+- base station firmware `1.0.0.12` available locally
+- live interoperability tests against own hardware
+- local protocol analysis of network traffic
 
-Reale DIDs, IP-Adressen, Push-Tokens, Sicherheitscodes und Kamerabilder sind keine Spezifikationsbestandteile und dürfen nicht in öffentliche Artefakte übernommen werden.
+Real DIDs, IP addresses, push tokens, security codes and camera images are not part
+of the specification and must not enter public artifacts.
 
-## Öffentliche Referenzen
+## Public references
 
-- [magicus/pppp-dissector](https://github.com/magicus/pppp-dissector), MIT — PPPP-Nachrichtentypen und Forschungsdokumentation
-- [nosoop-onlyslop/p2pcam](https://github.com/nosoop-onlyslop/p2pcam), Unlicense — unabhängige Go-Reimplementierung einer verwandten Uniden/PPPP-Variante
-- [DavidVentura/cam-reverse](https://github.com/DavidVentura/cam-reverse) — unabhängige PPPP-Session- und Streamingforschung
-- [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec), MIT — Inspiration für spec-driven Dokumentstruktur
-- [Inter Tight](https://fonts.google.com/specimen/Inter+Tight), SIL Open Font License 1.1 — Schrift für Markenname und Schritt-Headings
+- [magicus/pppp-dissector](https://github.com/magicus/pppp-dissector), MIT: PPPP
+  message types and research documentation
+- [nosoop-onlyslop/p2pcam](https://github.com/nosoop-onlyslop/p2pcam), Unlicense:
+  independent Go reimplementation of a related Uniden/PPPP variant
+- [DavidVentura/cam-reverse](https://github.com/DavidVentura/cam-reverse):
+  independent PPPP session and streaming research
+- [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec), MIT: inspiration
+  for the spec-driven document structure
+- [Inter Tight](https://fonts.google.com/specimen/Inter+Tight), SIL Open Font
+  License 1.1: font for brand name and step headings
 
-Die gerätespezifischen Felder, Batteriekommandos, Qualitätsmodi und das getestete Laufzeitverhalten wurden gegen reale Hardware validiert.
+The device-specific fields, battery commands, quality modes and tested runtime
+behavior were validated against real hardware.
 
-## Gebündelte Drittsoftware
+## Bundled third-party software
 
-- `web/hls.min.js`, hls.js 1.5.18; Lizenz in `web/HLS-LICENSE.txt` (Apache-2.0)
-- `web/icon-light.svg`, `web/icon-dark.svg`, Kamera-Icon aus Font Awesome Free 6.7.2 (Solid); Lizenz in `web/FONTAWESOME-LICENSE.txt` (Icons: CC BY 4.0)
-- `web/fonts/inter-tight-latin.woff2`, `web/fonts/inter-tight-bold-latin.woff2`, Inter Tight (Regular 400 und Bold 700) von Google Fonts; Lizenz in `web/INTERTIGHT-LICENSE.txt` (SIL Open Font License 1.1)
-- `web/swagger/*`, Swagger UI; Lizenz in `web/swagger/LICENSE` (Apache-2.0)
-- FFmpeg aus Alpine Linux wird im Runtime-Image installiert; Lizenz GPL-2.0-or-later (Paket `ffmpeg` in Alpine 3.24)
-- Alpine-Linux-Basissystem im Runtime-Image; Paketlizenzen siehe SBOM
-- Go-Standardbibliothek im statisch gelinkten Gateway-Binary; Lizenz BSD-3-Clause
+- `web/hls.min.js`, hls.js 1.5.18; license in `web/HLS-LICENSE.txt` (Apache-2.0)
+- `web/icon-light.svg`, `web/icon-dark.svg`, camera icon from Font Awesome Free
+  6.7.2 (solid); license in `web/FONTAWESOME-LICENSE.txt` (icons: CC BY 4.0)
+- `web/fonts/inter-tight-latin.woff2`, `web/fonts/inter-tight-bold-latin.woff2`,
+  Inter Tight (regular 400 and bold 700) from Google Fonts; license in
+  `web/INTERTIGHT-LICENSE.txt` (SIL Open Font License 1.1)
+- `web/swagger/*`, Swagger UI; license in `web/swagger/LICENSE` (Apache-2.0)
+- FFmpeg from Alpine Linux is installed in the runtime image; license
+  GPL-2.0-or-later (package `ffmpeg` in Alpine 3.24)
+- Alpine Linux base system in the runtime image; package licenses in the SBOM
+- Go standard library in the statically linked gateway binary; license BSD-3-Clause
 
-Die vollständige Paketliste des Laufzeitimages liegt als SBOM in CycloneDX und SPDX unter `sbom/`. Sie wird mit `./scripts/sbom.sh` aus dem gebauten Image erzeugt. Die statischen Web-Assets (hls.js, Font Awesome, Swagger UI) haben keinen Paketmanager-Eintrag und sind deshalb zusätzlich in `sbom/README.md` und im Lizenzdialog dokumentiert.
+The complete package list of the runtime image sits in the SBOM as CycloneDX and
+SPDX under `sbom/`. `./scripts/sbom.sh` generates it from the built image. The static
+web assets (hls.js, Font Awesome, Swagger UI) have no package-manager entry and are
+therefore also documented in `sbom/README.md` and in the license dialog.

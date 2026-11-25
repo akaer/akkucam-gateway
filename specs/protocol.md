@@ -1,236 +1,252 @@
-# Lokales PPCS-Protokoll
+# Local PPCS protocol
 
-## Statuskennzeichnung
+## Status markers
 
-- **Verifiziert:** aus Live-Mitschnitt und Hardwareantworten bestätigt
-- **Abgeleitet:** mit realer Hardware erfolgreich interoperabel, aber Feldbedeutung nicht vollständig bekannt
-- **Offen:** noch nicht implementiert oder nicht abschließend verstanden
+- **Verified:** confirmed by live capture and hardware replies
+- **Derived:** interoperable with real hardware, but the field meaning is not fully
+  known
+- **Open:** not implemented yet or not fully understood
 
-## Geräteprofil
+## Device profile
 
-| Eigenschaft | Wert |
+| Property | Value |
 |---|---|
-| Basisstation-Modell | `SMH-T1R` |
-| DID-Präfix | `CMAG` |
-| Basisstationsfirmware | `1.0.0.12` |
-| Kamerafirmware laut Paket | `0.0.36.0` |
-| Transport | proprietäres CS2/PPCS/PPPP über UDP |
+| Base station model | `SMH-T1R` |
+| DID prefix | `CMAG` |
+| Base station firmware | `1.0.0.12` |
+| Camera firmware per packet | `0.0.36.0` |
+| Transport | proprietary CS2/PPCS/PPPP over UDP |
 | Video | H.264 Annex-B, Main Profile |
-| verifizierte Liveauflösung | 1920×1080, 25 fps |
+| verified live resolution | 1920×1080, 25 fps |
 
-IP-Adressen und dynamische Ports sind installationsabhängig und gehören nicht zur Spezifikation.
+IP addresses and dynamic ports depend on the installation and are not part of the
+specification.
 
-## WAI Discovery — verifiziert
+## WAI discovery: verified
 
-- Controller bindet UDP/7200 und sendet einen 32-Byte-Broadcast an `255.255.255.255:7200`.
-- Anfrage beginnt mit ASCII `WAI0`.
-- Basisstation antwortet mit 124 Byte und ASCII `WAI1`.
+- The controller binds UDP/7200 and sends a 32-byte broadcast to
+  `255.255.255.255:7200`.
+- The request starts with ASCII `WAI0`.
+- The base station replies with 124 bytes and ASCII `WAI1`.
 
-Relevante Felder:
+Relevant fields:
 
-| Offset | Länge | Inhalt |
+| Offset | Length | Content |
 |---:|---:|---|
 | 0 | 4 | `WAI1` |
-| 16 | 17 | DID, NUL-terminiert |
-| 48 | 16 | Modell, NUL-terminiert |
+| 16 | 17 | DID, NUL-terminated |
+| 48 | 16 | Model, NUL-terminated |
 
-WAI dient nur der Inventarisierung. Der Live-Sitzungsaufbau verwendet die PPPP-LAN-Discovery.
+WAI serves inventory only. The live session uses PPPP LAN discovery.
 
-## PPPP-Basisheader — verifiziert
+## PPPP base header: verified
 
 ```text
-Offset  Größe  Bedeutung
-0       1      Magic 0xF1
-1       1      Nachrichtentyp
-2       2      Payload-Länge, Big Endian
-4       n      Payload
+Offset  Size  Meaning
+0       1     Magic 0xF1
+1       1     Message type
+2       2     Payload length, big endian
+4       n     Payload
 ```
 
-Verwendete Nachrichtentypen:
+Message types in use:
 
-| Typ | Name | Richtung |
+| Type | Name | Direction |
 |---:|---|---|
-| `0x30` | LAN_SEARCH | Controller → Broadcast |
-| `0x41` | PUNCH_PKT | Hub → Controller |
-| `0x42` | P2P_RDY | Hub → Controller |
-| `0xD0` | DRW | bidirektionale Daten |
-| `0xD1` | DRW_ACK | bidirektionale Bestätigung |
-| `0xE0` | ALIVE | bidirektional |
-| `0xE1` | ALIVE_ACK | bidirektional |
-| `0xF0` | CLOSE | bidirektional |
+| `0x30` | LAN_SEARCH | controller to broadcast |
+| `0x41` | PUNCH_PKT | hub to controller |
+| `0x42` | P2P_RDY | hub to controller |
+| `0xD0` | DRW | bidirectional data |
+| `0xD1` | DRW_ACK | bidirectional acknowledgement |
+| `0xE0` | ALIVE | bidirectional |
+| `0xE1` | ALIVE_ACK | bidirectional |
+| `0xF0` | CLOSE | bidirectional |
 
-## Lokaler Sitzungsaufbau — verifiziert
+## Local session setup: verified
 
 ```mermaid
 sequenceDiagram
     participant G as Gateway
-    participant H as Basisstation
-    G->>H: Broadcast F1 30 00 00 an UDP/32108
-    H->>G: PUNCH_PKT F1 41 ... vom dynamischen Port
-    G->>H: PUNCH_PKT bytegenau zurück
+    participant H as Base station
+    G->>H: Broadcast F1 30 00 00 to UDP/32108
+    H->>G: PUNCH_PKT F1 41 ... from the dynamic port
+    G->>H: PUNCH_PKT byte for byte back
     H->>G: P2P_RDY F1 42 ...
-    H->>G: Auth Challenge über DRW Kanal 0
-    G->>H: AES Challenge Response
-    H->>G: verschlüsselter Session-Key
+    H->>G: Auth challenge over DRW channel 0
+    G->>H: AES challenge response
+    H->>G: encrypted session key
     G->>H: StartVideo + StartAudio
-    H-->>G: Video über DRW Kanal 1
+    H-->>G: Video over DRW channel 1
 ```
 
-Der Quellport der PUNCH-Antwort ist der dynamische Zielport der Sitzung. Es wird kein Oguard-Verzeichnisserver benötigt.
+The source port of the PUNCH reply is the dynamic target port of the session. No
+Oguard directory server is needed.
 
-## DID im PUNCH-Paket — verifiziert
+## DID in the PUNCH packet: verified
 
-Payload nach dem 4-Byte-Basisheader:
+Payload after the 4-byte base header:
 
-| Offset | Länge | Inhalt |
+| Offset | Length | Content |
 |---:|---:|---|
-| 0 | 8 | Präfix, NUL-aufgefüllt |
-| 8 | 4 | Seriennummer, Big Endian |
-| 12 | 6 | Prüfcode, NUL-terminiert |
+| 0 | 8 | Prefix, NUL-padded |
+| 8 | 4 | Serial number, big endian |
+| 12 | 6 | Check code, NUL-terminated |
 
-Formatierte DID: `<PREFIX>-<SERIAL:06d>-<CHECK>`.
+Formatted DID: `<PREFIX>-<SERIAL:06d>-<CHECK>`.
 
-## Authentifizierung — verifiziert
+## Authentication: verified
 
-Die Basisstation initiiert die Authentifizierung auf DRW-Kanal 0:
+The base station starts authentication on DRW channel 0:
 
-1. `authType=1`, 16-Byte-Challenge
-2. Gateway antwortet mit `authType=2` und `AES-128-ECB(key, challenge)`
-3. `key` ist der UTF-8-Sicherheitscode, mit Nullen auf 16 Byte aufgefüllt beziehungsweise auf 16 Byte gekürzt
-4. Basisstation sendet `authType=3` und einen verschlüsselten 16-Byte-Session-Key
-5. Gateway entschlüsselt den Session-Key per AES-128-ECB
-6. `authType=4` bedeutet abgelehnte Authentifizierung
+1. `authType=1`, 16-byte challenge
+2. The gateway replies with `authType=2` and `AES-128-ECB(key, challenge)`
+3. `key` is the UTF-8 security code, padded with zeros to 16 bytes or truncated to
+   16 bytes
+4. The base station sends `authType=3` and an encrypted 16-byte session key
+5. The gateway decrypts the session key with AES-128-ECB
+6. `authType=4` means rejected authentication
 
-AES-ECB ist eine Eigenschaft des Altprotokolls und keine Designentscheidung des Gateways.
+AES-ECB is a property of the legacy protocol, not a design decision of the
+gateway.
 
-## DRW-Framing — verifiziert
+## DRW framing: verified
 
 ```text
-F1 D0 <Länge BE> D1 <Kanal> <Sequenz BE> <App-Daten>
+F1 D0 <length BE> D1 <channel> <sequence BE> <app data>
 ```
 
-| Kanal | Verwendung |
+| Channel | Use |
 |---:|---|
-| 0 | Authentifizierung und IO-Control |
-| 1 | Video-/Medienframes vom Hub |
+| 0 | Authentication and IO-Control |
+| 1 | Video and media frames from the hub |
 
-Jedes empfangene Fragment wird mit `D1` bestätigt. Die 16-Bit-Sequenznummer kann umlaufen. Der Gateway puffert Out-of-order-Fragmente pro Kanal.
+Every received fragment is acknowledged with `D1`. The 16-bit sequence number can
+wrap. The gateway buffers out-of-order fragments per channel.
 
-## App-Frame — verifiziert
+## App frame: verified
 
 ```text
-Offset  Größe  Bedeutung
-0       3      Body-Länge, Little Endian 24 Bit
-3       1      Streamtyp
-4       16     AES-verschlüsselter Header
-20      n      Nutzdaten
+Offset  Size  Meaning
+0       3     Body length, little endian 24 bit
+3       1     Stream type
+4       16    AES-encrypted header
+20      n     Payload
 ```
 
-Der entschlüsselte Medienheader enthält:
+The decrypted media header contains:
 
-- Nutzdatenlänge an Header-Offset 8, Little Endian `uint32`
-- XOR-/Obfuskationsbyte an Header-Offset 4
+- payload length at header offset 8, little endian `uint32`
+- XOR obfuscation byte at header offset 4
 
-Das H.264-Payload enthält Annex-B-Startcodes, SPS, PPS, IDR- und P-Slices.
+The H.264 payload contains Annex-B start codes, SPS, PPS, IDR and P slices.
 
-## IO-Control — verifiziert
+## IO-Control: verified
 
-IO-Control-Frames verwenden Streamtyp `4`. Der 16-Byte-Header enthält:
+IO-Control frames use stream type `4`. The 16-byte header contains:
 
-- Control Type an Offset 0, Little Endian `uint16`
-- Payload-Länge an Offset 2, Little Endian `uint16`
-- XOR-Byte an Offset 4
+- control type at offset 0, little endian `uint16`
+- payload length at offset 2, little endian `uint16`
+- XOR byte at offset 4
 
-Implementierte Befehle:
+Implemented commands:
 
-| Control Type | Funktion | Payload |
+| Control type | Function | Payload |
 |---:|---|---|
-| `1` | StartVideo | 8 Byte `Ex_IOCTRLAVStream` |
-| `3` | StartAudio | 8 Byte `Ex_IOCTRLAVStream` |
-| `5` / `6` | Hub-Geräteinfo Anfrage/Antwort | 4 Byte Anfrage; mindestens 56 Byte Antwort |
-| `40448` | Kamera-Akku | 16 Byte, Kanal in Byte 0 |
-| `40962` | gekoppelte Kameraliste | 16 Byte Anfrage; Kanalzahl und 60-Byte-Einträge als Antwort |
-| `40963` | Kameraparameter schreiben | vollständiger 256-Byte-Parameterblock |
-| `40964` | Kameraparameter lesen | 16 Byte Anfrage; 256-Byte-Antwort |
+| `1` | StartVideo | 8 bytes `Ex_IOCTRLAVStream` |
+| `3` | StartAudio | 8 bytes `Ex_IOCTRLAVStream` |
+| `5` / `6` | hub device info request/reply | 4-byte request; at least 56-byte reply |
+| `40448` | camera battery | 16 bytes, channel in byte 0 |
+| `40962` | coupled camera list | 16-byte request; channel count and 60-byte entries in the reply |
+| `40963` | write camera parameters | complete 256-byte parameter block |
+| `40964` | read camera parameters | 16-byte request; 256-byte reply |
 
-`StartAudio` wird für die verifizierte Sitzungssequenz gesendet, aber nicht ausgewertet. Der Gateway verwirft Audiodaten und bietet keine Audioausgabe (siehe [ADR-0020](adrs/0020-no-audio-support.md)).
+`StartAudio` is sent for the verified session sequence but not evaluated. The
+gateway discards audio data and offers no audio output (see
+[ADR-0020](adrs/0020-no-audio-support.md)).
 
 `Ex_IOCTRLAVStream`:
 
-| Byte | Inhalt |
+| Byte | Content |
 |---:|---|
-| 0 | Kameraindex, nullbasiert |
-| 4 | Qualitätsmodus |
-| 5 | Audio-Notification/Call-Flag |
-| 6–7 | optionaler Audiocodec |
+| 0 | camera index, zero-based |
+| 4 | quality mode |
+| 5 | audio notification/call flag |
+| 6–7 | optional audio codec |
 
-Qualitätsmodi:
+Quality modes:
 
-| Wert | Modus |
+| Value | Mode |
 |---:|---|
-| 0 | Geräteeinstellung |
+| 0 | device setting |
 | 1 | Full HD |
 | 2 | HD |
 | 3 | SD |
-| 4 | Automatisch |
+| 4 | automatic |
 
-## Batterieantwort — verifiziert
+## Battery reply: verified
 
-Antwort auf Control Type `40448`, mindestens 16 Byte:
+Reply to control type `40448`, at least 16 bytes:
 
-| Byte | Inhalt |
+| Byte | Content |
 |---:|---|
-| 0 | Kanalindex |
-| 1 | Kapazität in Prozent |
-| 2 | `1` = lädt, sonst nicht ladend |
+| 0 | channel index |
+| 1 | capacity in percent |
+| 2 | `1` = charging, otherwise not charging |
 
-Der Gateway fragt unmittelbar nach Streamstart und danach alle 30 Sekunden ab.
+The gateway reads immediately after stream start and then every 30 seconds.
 
-## Hub-Kameraliste — verifiziert
+## Hub camera list: verified
 
-Antwort auf Control Type `40962`:
+Reply to control type `40962`:
 
-- Byte 0–3: Anzahl, Little Endian `uint32`
-- danach je Kamera 60 Byte:
-  - Byte 0: Kanalindex
-  - Byte 1–32: Gerätename
-  - Byte 33–48: Modell
-  - Byte 49–52: Firmwareversion, Little Endian
-  - Byte 53–56: MCU-Version, Little Endian
-  - Byte 57: Updatefähigkeit
+- bytes 0–3: count, little endian `uint32`
+- then 60 bytes per camera:
+  - byte 0: channel index
+  - bytes 1–32: device name
+  - bytes 33–48: model
+  - bytes 49–52: firmware version, little endian
+  - bytes 53–56: MCU version, little endian
+  - byte 57: update capability
 
-Die reale Basisstation meldet nur tatsächlich gekoppelte Kameras. Der Gateway erzeugt im normalen Flow keine festen Phantomkanäle.
+The real base station reports only actually coupled cameras. The gateway creates
+no fixed phantom channels in the normal flow.
 
-## Hub-Geräteinfo — verifiziert
+## Hub device info: verified
 
-Die Antwort auf Control Type `6` enthält unter anderem:
+The reply to control type `6` contains, among other fields:
 
-- Byte 0–15: Modell
-- Byte 16–31: Hersteller
-- Byte 32–35: Firmwareversion in umgekehrter Bytereihenfolge
-- Byte 36–39: API-Version
-- Byte 40–43: SD-Karten Gesamtkapazität in *dezimalen* MB (Little Endian `uint32`)
-- Byte 44–47: SD-Karten freier Speicher in *dezimalen* MB (Little Endian `uint32`)
-- Byte 48–51: SD-Status (Little Endian `uint32`), z.B. `0` normal, `48` keine Karte
-- Byte 56–71: MCU-Versionsstring, sofern die Antwort mindestens 72 Byte lang ist
+- bytes 0–15: model
+- bytes 16–31: manufacturer
+- bytes 32–35: firmware version in reversed byte order
+- bytes 36–39: API version
+- bytes 40–43: SD card total capacity in *decimal* MB (little endian `uint32`)
+- bytes 44–47: SD card free space in *decimal* MB (little endian `uint32`)
+- bytes 48–51: SD status (little endian `uint32`), for example `0` normal, `48` no
+  card
+- bytes 56–71: MCU version string if the reply is at least 72 bytes long
 
-Eine Hub-MAC ist in dieser Antwort nicht enthalten. Sie darf ausschließlich aus der lokalen ARP-Tabelle ergänzt werden. Die bekannten Kameraantworten enthalten keine Kamera-MAC.
+The reply contains no hub MAC. It may only be added from the local ARP table. The
+known camera replies contain no camera MAC.
 
-## Kameraparameter und Bewegungserkennung — verifiziert
+## Camera parameters and motion detection: verified
 
-Der Parameterblock von Control Type `40964` ist 256 Byte lang. Relevante Felder:
+The parameter block of control type `40964` is 256 bytes long. Relevant fields:
 
-| Byte | Inhalt |
+| Byte | Content |
 |---:|---|
-| 0 | Kanalindex |
-| 1 | Ergebnis |
-| 2 | Auflösungsindex |
-| 3 | Umgebungsmodus |
-| 4 | `pirMode`: `0` aus, `1` aktiv |
-| 5 | PIR-Tagessensitivität |
+| 0 | channel index |
+| 1 | result |
+| 2 | resolution index |
+| 3 | environment mode |
+| 4 | `pirMode`: `0` off, `1` active |
+| 5 | PIR day sensitivity |
 
-Schreiben erfolgt als Read-Modify-Write: Der Gateway liest alle 256 Byte, ändert ausschließlich Byte 4, sendet den vollständigen Block über `40963` und liest ihn zur Verifikation erneut. Ein Teilblock darf nicht geschrieben werden, da sonst unbekannte Einstellungen überschrieben würden.
+Writing is a read-modify-write: the gateway reads all 256 bytes, changes only byte
+4, sends the complete block through `40963` and reads it again to verify. A partial
+block must not be written, because that would overwrite unknown settings.
 
-## Bitrate — Gatewaymetrik
+## Bitrate: gateway metric
 
-Die angezeigte Bitrate ist die Anzahl der in der letzten vollen Sekunde erfolgreich an FFmpeg geschriebenen H.264-Nutzdatenbytes. Nicht enthalten sind UDP-, IP-, PPPP-, DRW-, HLS- oder HTTP-Overheads. Die UI teilt durch 1024 und zeigt gerundete `KB/s`.
+The displayed bitrate is the number of H.264 payload bytes successfully written to
+FFmpeg in the last full second. It excludes UDP, IP, PPPP, DRW, HLS and HTTP
+overhead. The UI divides by 1024 and shows rounded `KB/s`.
