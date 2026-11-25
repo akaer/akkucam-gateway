@@ -85,3 +85,19 @@ Versionsstring ohne Bezug zum Quellstand reicht dafür nicht.
 - ADR-0017: OpenAPI als API-Vertrag
 - ADR-0024: Hilfe-Popup im Topbar
 - `CONTRIBUTING.md`, `.github/pull_request_template.md`
+
+## Nachtrag 2026-11-25
+
+- `main` und die Release-Tags `v*` sind als GitHub-Rulesets geschützt: Pull
+  Request, grüne Checks, lineare History, keine Force-Pushes, keine
+  Tag-Änderungen. Die Regeln liegen in GitHub, nicht im Repository.
+- Ein Tag `v<version>` startet `.github/workflows/release.yml`. Der Workflow
+  prüft, dass Tag und `internal/version/version.go` übereinstimmen und der
+  Commit auf `main` liegt, baut das Image für `linux/amd64` und `linux/arm64`,
+  schiebt es nach GHCR und legt einen GitHub Release mit generierten Notes und
+  den SBOM-Dateien an.
+- Das Image trägt OCI-Labels mit Quelle, Lizenz, Version und Revision; das
+  verlinkt das GHCR-Paket mit dem Repository.
+- Das erste veröffentlichte Release ist `v0.1.0-beta.2`. Der Tag
+  `v0.1.0-beta.1` bleibt unverändert, wird aber nicht als Release
+  veröffentlicht.

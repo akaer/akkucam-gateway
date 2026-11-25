@@ -11,6 +11,11 @@ RUN CGO_ENABLED=0 GOOS=linux go test ./... && \
       -o /out/akkucam-gateway ./cmd/gateway
 
 FROM alpine:3.21
+LABEL org.opencontainers.image.title="AkkuCam Gateway" \
+      org.opencontainers.image.description="Local gateway for AkkuCam base stations" \
+      org.opencontainers.image.source="https://github.com/akaer/akkucam-gateway" \
+      org.opencontainers.image.url="https://github.com/akaer/akkucam-gateway" \
+      org.opencontainers.image.licenses="MIT"
 # hadolint ignore=DL3018
 RUN apk add --no-cache ffmpeg && addgroup -S gateway && adduser -S -G gateway gateway
 WORKDIR /app

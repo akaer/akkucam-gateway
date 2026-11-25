@@ -8,7 +8,7 @@ import (
 
 // Version is the semantic version of the gateway. Bump it in the release pull
 // request; the tag on main uses the same value with a "v" prefix.
-var Version = "0.1.0-beta.1"
+var Version = "0.1.0-beta.2"
 
 // commit is injected at link time:
 // -ldflags "-X akkucam-gateway/internal/version.commit=<hash>"

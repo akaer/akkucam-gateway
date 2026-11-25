@@ -2,6 +2,12 @@
 
 [English](README.md) | **Deutsch**
 
+[![Lizenz: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Go 1.27](https://img.shields.io/badge/go-1.27-00ADD8.svg)](https://go.dev/)
+[![Plattformen: linux/amd64, linux/arm64](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20linux%2Farm64-lightgrey.svg)](compose.yaml)
+[![Keine Cloud](https://img.shields.io/badge/cloud-none-success.svg)](specs/architecture.md)
+[![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](specs/roadmap.md)
+
 Livebilder der AkkuCam-Basisstation im Browser, ohne Hersteller-App und ohne Cloud. Der Gateway ist ein einzelner Go-Prozess im Container: er findet die Basisstation per Broadcast im lokalen Netz, baut die PPCS-Sitzung direkt zu ihr auf und reicht das H.264-Bild über FFmpeg als HLS an das Dashboard weiter.
 
 ![Live-Wand mit zwei Basisstationen, drei Kameras und einer leeren Rasterzelle](docs/screenshots/wall.png)
@@ -44,6 +50,17 @@ Danach <http://localhost:8080> öffnen, „Basisstationen suchen“ klicken, den
 | --- | --- | --- |
 | `AKKUCAM_LISTEN` | `:8080` | Adresse und Port für HTTP |
 | `AKKUCAM_WEB_ROOT` | `/app/web` | Verzeichnis der statischen Dateien, für lokale Entwicklung auf `$PWD/web` setzen |
+
+### Container-Image
+
+Releases erscheinen als Multi-Arch-Image in der GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/akaer/akkucam-gateway:0.1.0-beta.2
+docker run -d --name akkucam-gateway --network host ghcr.io/akaer/akkucam-gateway:0.1.0-beta.2
+```
+
+Das Image enthält dasselbe Binary und dieselben Web-Assets wie der lokale Build. `network_mode: host` ist für Discovery und PPCS erforderlich.
 
 ## Mehrere Basisstationen
 
@@ -124,7 +141,7 @@ AKKUCAM_WEB_ROOT=$PWD/web go run ./cmd/gateway
 
 Nach Änderungen an `web/` ist für den Container ein neuer Build nötig.
 
-Die Version steht in `internal/version/version.go`. `make up`, `make test` und die CI übergeben den Git-Commit an den Build; Hilfe-Dialog und `GET /api/version` zeigen beides. Releases folgen semantischer Versionierung und werden auf `main` mit `v<version>` getaggt; Branch-, PR- und Release-Ablauf stehen in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Die Version steht in `internal/version/version.go`. `make up`, `make test` und die CI übergeben den Git-Commit an den Build; Hilfe-Dialog und `GET /api/version` zeigen beides. Releases folgen semantischer Versionierung und werden auf `main` mit `v<version>` getaggt; veröffentlichte Releases stehen auf [GitHub](https://github.com/akaer/akkucam-gateway/releases) und als Images in der GitHub Container Registry. Branch-, PR- und Release-Ablauf stehen in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## SBOM
 
