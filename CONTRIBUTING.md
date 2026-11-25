@@ -51,16 +51,17 @@ the co-author line of the agent that made the change.
 
 ## Versioning
 
-The project follows [Semantic Versioning 2.0.0](https://semver.org/) and starts
-in the `0.y.z` beta range. Until `1.0.0`:
+The project follows [Semantic Versioning 2.0.0](https://semver.org/) and is in
+the `0.y.z` range. Until `1.0.0`:
 
 - `MINOR` for new features and breaking changes
 - `PATCH` for backwards-compatible fixes
-- prereleases carry a suffix such as `-beta.1`
+- prereleases carry a suffix such as `-beta.1`; releases after the beta phase
+  carry no prerelease suffix
 
 `internal/version/version.go` holds the version. Bump it in the pull request
 that makes the release, merge it, then tag `main` with `v<version>` (for example
-`v0.1.0-beta.1`). A tag is never moved or reused. Docker tags use the version
+`v0.2.0`). A tag is never moved or reused. Docker tags use the version
 without the commit hash.
 
 The build carries the short Git commit: `make up`, `make test` and CI pass it

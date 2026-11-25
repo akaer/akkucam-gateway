@@ -6,7 +6,7 @@
 [![Go 1.27](https://img.shields.io/badge/go-1.27-00ADD8.svg)](https://go.dev/)
 [![Plattformen: linux/amd64, linux/arm64](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20linux%2Farm64-lightgrey.svg)](compose.yaml)
 [![Keine Cloud](https://img.shields.io/badge/cloud-none-success.svg)](specs/architecture.md)
-[![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](specs/roadmap.md)
+[![Version 0.2.0](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/akaer/akkucam-gateway/releases)
 
 Livebilder der AkkuCam-Basisstation im Browser, ohne Hersteller-App und ohne Cloud. Der Gateway ist ein einzelner Go-Prozess im Container: er findet die Basisstation per Broadcast im lokalen Netz, baut die PPCS-Sitzung direkt zu ihr auf und reicht das H.264-Bild über FFmpeg als HLS an das Dashboard weiter.
 
@@ -26,12 +26,13 @@ Livebilder der AkkuCam-Basisstation im Browser, ohne Hersteller-App und ohne Clo
 - Sicherheitscode je Basisstation nur im Browser-RAM, nie in LocalStorage, Logs oder Dateien
 - HTTP-API mit OpenAPI-Vertrag und lokal ausgelieferter Swagger UI
 - SBOM in CycloneDX und SPDX aus dem Laufzeitimage
+- Multi-Arch-Containerimage für linux/amd64 und linux/arm64, verifiziert auf einem Raspberry Pi 4 Model B Rev 1.4
 
-Verifiziert ist die Basisstation `SMH-T1R` mit Firmware `1.0.0.12` und den Kameras `PPIC90000`, `PPIC90010` und `PPIC90200`. Andere Modelle und Firmwarestände sind nicht getestet.
+Verifiziert ist die Basisstation `SMH-T1R` mit Firmware `1.0.0.12` und den Kameras `PPIC90000`, `PPIC90010` und `PPIC90200`. Andere Modelle und Firmwarestände sind nicht getestet. Getestete Hosts: Linux/NixOS x86-64 und ein Raspberry Pi 4 Model B Rev 1.4 mit 64-Bit-Betriebssystem.
 
 ## Voraussetzungen
 
-- Linux-Host mit Docker und Docker Compose
+- 64-Bit-Linux-Host mit Docker und Docker Compose (x86-64 oder arm64); verifiziert auf einem Raspberry Pi 4 Model B Rev 1.4
 - Basisstation im selben IPv4-Subnetz wie der Gateway
 - freie Ports: TCP 8080 (Dashboard, API, HLS) sowie UDP 7200 (WAI) und UDP 32108 (PPCS)
 - Browser mit Media Source Extensions; getestet sind Chromium und Firefox
@@ -56,11 +57,11 @@ Danach <http://localhost:8080> öffnen, „Basisstationen suchen“ klicken, den
 Releases erscheinen als Multi-Arch-Image in der GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/akaer/akkucam-gateway:0.1.0-beta.2
-docker run -d --name akkucam-gateway --network host ghcr.io/akaer/akkucam-gateway:0.1.0-beta.2
+docker pull ghcr.io/akaer/akkucam-gateway:0.2.0
+docker run -d --name akkucam-gateway --network host ghcr.io/akaer/akkucam-gateway:0.2.0
 ```
 
-Das Image enthält dasselbe Binary und dieselben Web-Assets wie der lokale Build. `network_mode: host` ist für Discovery und PPCS erforderlich.
+Das Image enthält dasselbe Binary und dieselben Web-Assets wie der lokale Build. Die arm64-Variante läuft auf einem Raspberry Pi 4 Model B Rev 1.4 mit 64-Bit-Betriebssystem. `network_mode: host` ist für Discovery und PPCS erforderlich.
 
 ## Mehrere Basisstationen
 

@@ -97,3 +97,5 @@ source revision is not enough.
   links the GHCR package to the repository.
 - The first published release is `v0.1.0-beta.2`. The tag `v0.1.0-beta.1` stays
   unchanged but is not published as a release.
+- The first release without a prerelease suffix is `v0.2.0`; the beta phase ends
+  there.
