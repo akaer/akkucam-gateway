@@ -107,3 +107,10 @@ one line of text costs little area and replaces an extra interaction step.
 - ADR-0028: Terminology
 - ADR-0030: Accessibility
 - `web/app.js`, `web/index.html`, `web/style.css`, `web/locales/`
+
+## Addendum 2026-11-25
+
+The unit was wrong for a binary display. The overlay and the drawer now divide
+`bitrateBytesPerSecond` by 1024 and show `KB/s`; the catalog key is
+`camera.metric.kbValue`. This supersedes the `kbit/s` bullets above. The example
+value is `52 KB/s · 25 fps · 87 %`.

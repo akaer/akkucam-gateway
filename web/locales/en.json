@@ -134,7 +134,7 @@
   "camera.metric.fps": "FPS",
   "camera.metric.battery": "Battery",
   "camera.metric.uptime": "Uptime",
-  "camera.metric.kbpsValue": "{value} kbit/s",
+  "camera.metric.kbValue": "{value} KB/s",
   "camera.metric.fpsValue": "{value} fps",
   "camera.metric.percentValue": "{value} %",
   "camera.quality": "Quality",

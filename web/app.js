@@ -954,8 +954,8 @@ function liveMetricValues(stream) {
   if (!status) return [];
   const values = [];
   if (Number.isFinite(status.bitrateBytesPerSecond)) {
-    const kbps = new Intl.NumberFormat(state.lang, { maximumFractionDigits: 0 }).format((status.bitrateBytesPerSecond * 8) / 1000);
-    values.push(i18n.t('camera.metric.kbpsValue', { value: kbps }));
+    const kb = new Intl.NumberFormat(state.lang, { maximumFractionDigits: 0 }).format(status.bitrateBytesPerSecond / 1024);
+    values.push(i18n.t('camera.metric.kbValue', { value: kb }));
   }
   if (status.framesPerSecond) {
     values.push(i18n.t('camera.metric.fpsValue', { value: status.framesPerSecond }));
@@ -1563,8 +1563,8 @@ function metricRows(stream) {
   const status = stream.status;
   const rows = [];
   if (Number.isFinite(status.bitrateBytesPerSecond)) {
-    const kbps = new Intl.NumberFormat(state.lang, { maximumFractionDigits: 0 }).format((status.bitrateBytesPerSecond * 8) / 1000);
-    rows.push(['camera.metric.bitrate', i18n.t('camera.metric.kbpsValue', { value: kbps })]);
+    const kb = new Intl.NumberFormat(state.lang, { maximumFractionDigits: 0 }).format(status.bitrateBytesPerSecond / 1024);
+    rows.push(['camera.metric.bitrate', i18n.t('camera.metric.kbValue', { value: kb })]);
   }
   if (status.framesPerSecond) {
     rows.push(['camera.metric.fps', i18n.t('camera.metric.fpsValue', { value: status.framesPerSecond })]);

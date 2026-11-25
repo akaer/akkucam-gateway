@@ -99,7 +99,7 @@ runs can be started separately.
 ### Browser E2E (Playwright)
 
 `web/e2e/` holds Playwright tests. They run in the official image
-`mcr.microsoft.com/playwright:v1.49.1-jammy` through `scripts/test-e2e.sh`; a local
+`mcr.microsoft.com/playwright:v1.65.1-jammy` through `scripts/test-e2e.sh`; a local
 Node installation is not needed. Every suite runs in Chromium and Firefox: project
 names without a suffix are Chromium, `-firefox` is Firefox. The script starts the
 container with `--network host`, checks `/api/health` first and passes the base URL
@@ -145,7 +145,7 @@ and optional hardware parameters as environment variables.
 - tiles start at the top edge and keep an empty grid cell for an odd camera count
 - auto, focus and comfort switch without replacing the video element
 - the focus strip shows canvas thumbnails for running streams
-- the live data overlay shows kbit/s, FPS and battery and lets the click through to
+- the live data overlay shows KB/s, FPS and battery and lets the click through to
   the sidebar
 - the hub short label is absent from the auto and focus video and present in comfort
 - the "Live data on tiles" switch hides the overlay, stores only `off` and is reset
@@ -373,18 +373,19 @@ make test-hardware  # optional, real hardware
 
 ## Current coverage
 
-Last local measurement:
+Measured 2026-11-25:
 
 | Package | Statement coverage |
 |---|---:|
 | `cmd/gateway` | 0.0 % (no tests) |
 | `internal/apierr` | 52.6 % |
-| `internal/discovery` | 14.9 % |
-| `internal/gateway` | 80.1 % |
+| `internal/discovery` | 14.6 % |
+| `internal/gateway` | 80.7 % |
 | `internal/openapi` | 16.7 % |
-| `internal/ppcs` | 75.5 % |
-| `internal/stream` | 78.4 % |
-| total | 69.4 % |
+| `internal/ppcs` | 75.4 % |
+| `internal/stream` | 79.3 % |
+| `internal/version` | 46.7 % |
+| total | 69.0 % |
 
 The low discovery coverage comes mostly from OS and socket paths. Packet parsers and
 merging are tested deterministically; the real broadcast path is part of the hardware
