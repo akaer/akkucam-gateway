@@ -35,7 +35,9 @@ behavior were validated against real hardware.
   `web/INTERTIGHT-LICENSE.txt` (SIL Open Font License 1.1)
 - `web/swagger/*`, Swagger UI; license in `web/swagger/LICENSE` (Apache-2.0)
 - FFmpeg from Alpine Linux is installed in the runtime image; license
-  GPL-2.0-or-later (package `ffmpeg` in Alpine 3.24)
+  GPL-2.0-or-later (package `ffmpeg` in Alpine 3.24). The image ships the
+  unmodified package; corresponding source is the Alpine `aports` package at
+  <https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/ffmpeg>
 - Alpine Linux base system in the runtime image; package licenses in the SBOM
 - Go standard library in the statically linked gateway binary; license BSD-3-Clause
 

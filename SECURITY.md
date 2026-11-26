@@ -9,9 +9,9 @@ current `main` branch receive fixes.
 
 Do not open a public issue for a security problem. Use GitHub's private
 vulnerability reporting: open the repository's **Security** tab and choose
-**Report a vulnerability**. If that is not available (for example while the
-repository is private), contact the maintainer through GitHub
-([@akaer](https://github.com/akaer)) to agree on a private channel.
+**Report a vulnerability**. If that is not available, contact the maintainer
+through GitHub ([@akaer](https://github.com/akaer)) to agree on a private
+channel.
 
 Include the affected version or commit, the base station model and firmware,
 reproduction steps and the impact you expect. Never include real security
