@@ -2,11 +2,13 @@
 
 **English** | [Deutsch](README_de.md)
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go 1.27](https://img.shields.io/badge/go-1.27-00ADD8.svg)](https://go.dev/)
-[![Platforms: linux/amd64, linux/arm64](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20linux%2Farm64-lightgrey.svg)](compose.yaml)
+[![CI](https://github.com/akaer/akkucam-gateway/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/akaer/akkucam-gateway/actions/workflows/test.yml)
+[![CodeQL](https://github.com/akaer/akkucam-gateway/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/akaer/akkucam-gateway/security/code-scanning)
+[![Release](https://img.shields.io/github/v/release/akaer/akkucam-gateway)](https://github.com/akaer/akkucam-gateway/releases)
+[![License: MIT](https://img.shields.io/github/license/akaer/akkucam-gateway)](LICENSE)
+[![Go](https://img.shields.io/github/go-mod/go-version/akaer/akkucam-gateway)](https://go.dev/)
+[![Platforms: linux/amd64, linux/arm64](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20linux%2Farm64-lightgrey.svg)](https://github.com/akaer/akkucam-gateway/pkgs/container/akkucam-gateway)
 [![No cloud](https://img.shields.io/badge/cloud-none-success.svg)](specs/architecture.md)
-[![Version 0.2.0](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/akaer/akkucam-gateway/releases)
 
 Live video from the AkkuCam base station in the browser, without the vendor app and without a cloud. The gateway is a single Go process in a container: it finds the base station by broadcast on the local network, opens the PPCS session directly to it, and passes the H.264 stream to the dashboard as HLS via FFmpeg.
 
@@ -45,7 +47,7 @@ make up
 
 Then open <http://localhost:8080>, click "Discover base stations", enter the security code of the base station and start the streams. The first frame takes a few seconds because starting a stream wakes the camera.
 
-`network_mode: host` is required because discovery uses IPv4 broadcast and Docker bridge networks do not forward those packets. The container runs as an unprivileged user without `privileged` and without `NET_RAW`, and ships a health check against `/api/health`. It keeps no state: HLS segments live in `/tmp/akkucam-hls`, everything else in RAM.
+`network_mode: host` is required because discovery uses IPv4 broadcast and Docker bridge networks do not forward those packets. The container runs as an unprivileged user without `privileged` and without `NET_RAW`, and ships a health check against `/api/health`. It keeps no state: HLS segments live in `/tmp/akkucam-hls`, everything else in RAM. The HTTP API has no authentication of its own; keep port 8080 on the local network and never expose it to the internet.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -164,7 +166,7 @@ The gateway is released under the MIT license, see [`LICENSE`](LICENSE). The lic
 | Font Awesome Free 6.7.2 (camera icon) | Icons: CC BY 4.0 | [`web/FONTAWESOME-LICENSE.txt`](web/FONTAWESOME-LICENSE.txt) |
 | Inter Tight (brand name and large headings) | SIL OFL 1.1 | [`web/INTERTIGHT-LICENSE.txt`](web/INTERTIGHT-LICENSE.txt) |
 | Swagger UI | Apache 2.0 | [`web/swagger/LICENSE`](web/swagger/LICENSE) |
-| FFmpeg (in the runtime image) | GPL-2.0-or-later | see SBOM |
+| FFmpeg (in the runtime image) | GPL-2.0-or-later | unmodified Alpine package, [source](https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/ffmpeg); licenses in the SBOM |
 | Alpine Linux (in the runtime image) | various | see SBOM |
 | Go (in the runtime image) | BSD-3-Clause | see SBOM |
 
