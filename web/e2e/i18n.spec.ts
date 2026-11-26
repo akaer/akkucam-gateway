@@ -188,6 +188,22 @@ test.describe('help popup', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('So funktioniert es');
     await expect(dialog).toContainText('Basisstation finden, gekoppelte Kameras öffnen und Livebild ohne Cloud-Dienst starten.');
+    await expect(dialog.getByRole('link', { name: 'Projekt auf GitHub' })).toHaveAttribute('href', 'https://github.com/akaer/akkucam-gateway');
+  });
+
+  test('links to the project repository', async ({ page }) => {
+    // Arrange
+    await page.goto('/?lang=en');
+    await page.locator('#help-toggle').click();
+
+    // Act
+    const link = page.locator('#help-dialog').getByRole('link', { name: 'Project on GitHub' });
+
+    // Assert
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', 'https://github.com/akaer/akkucam-gateway');
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
   });
 
   test('shows the version and build commit from the API', async ({ page, request }) => {
