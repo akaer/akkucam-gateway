@@ -88,7 +88,12 @@ nothing reaches disk. Hardware tests require a stopped gateway and use
 | UI behavior or layout | see `web/AGENTS.md` | `make test-e2e` |
 | Protocol detail | `internal/ppcs` with `constants.go`, `specs/protocol.md`, ADR | `make test`, optionally hardware |
 | Image dependency | ADR, license dialog, `specs/sources.md`, `./scripts/sbom.sh` | `make test`, committed SBOM diff |
-| Release | `internal/version/version.go`, tag `v<version>` | `make test`, `GET /api/version` carries the tag's version and commit |
+| Release | `internal/version/version.go`, the version examples in `README.md`, `README_de.md`, `specs/api.md` and `internal/openapi/openapi.json`, tag `v<version>` | `make test`, `GET /api/version` carries the tag's version and commit |
+
+A release PR bumps the version in one commit and merges before the tag, so the
+tag always points at a commit whose `version.go` the `Verify tag` step in
+`.github/workflows/release.yml` accepts. `SECURITY.md` keeps its `0.y.x` line,
+and versions inside `specs/adrs/` stay as written because they record history.
 
 ## Definition of done
 
