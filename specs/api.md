@@ -61,7 +61,7 @@ Returns the semantic version and short Git commit of the running binary. If the
 build has no commit, the field is omitted.
 
 ```json
-{"version":"0.2.0","commit":"bfe827d"}
+{"version":"0.2.1","commit":"bfe827d"}
 ```
 
 ## `POST /api/discover`

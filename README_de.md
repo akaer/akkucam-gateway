@@ -59,8 +59,8 @@ Danach <http://localhost:8080> öffnen, „Basisstationen suchen“ klicken, den
 Releases erscheinen als Multi-Arch-Image in der GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/akaer/akkucam-gateway:0.2.0
-docker run -d --name akkucam-gateway --network host ghcr.io/akaer/akkucam-gateway:0.2.0
+docker pull ghcr.io/akaer/akkucam-gateway:0.2.1
+docker run -d --name akkucam-gateway --network host ghcr.io/akaer/akkucam-gateway:0.2.1
 ```
 
 Das Image enthält dasselbe Binary und dieselben Web-Assets wie der lokale Build. Die arm64-Variante läuft auf einem Raspberry Pi 4 Model B Rev 1.4 mit 64-Bit-Betriebssystem. `network_mode: host` ist für Discovery und PPCS erforderlich.
