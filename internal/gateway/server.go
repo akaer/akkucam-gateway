@@ -138,7 +138,7 @@ func (s *Server) Routes() http.Handler {
 		apierr.Write(w, apierr.New(apierr.CodeNotFound, http.StatusNotFound, "API endpoint not found"))
 	})
 	mux.Handle("/hls/", http.StripPrefix("/hls/", http.FileServer(http.Dir(s.streams.Root()))))
-	mux.Handle("/", http.FileServer(http.Dir(s.webRoot)))
+	mux.Handle("/", gzipAssets(http.FileServer(http.Dir(s.webRoot))))
 	return mux
 }
 

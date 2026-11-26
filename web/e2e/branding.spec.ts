@@ -153,7 +153,23 @@ test.describe('branding and licensing', () => {
     await expect(licenses).toContainText('Go');
     await expect(dialog.locator('a[href="/api/docs"]')).toBeVisible();
     expect(await dialog.locator('.license-scroll').evaluate((element) => getComputedStyle(element).overflowY)).toBe('auto');
+    for (const link of await dialog.locator('.license-list a').all()) {
+      const box = await link.boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(24);
+    }
     await expect(page.locator('#help-dialog')).toBeHidden();
+  });
+
+  test('reduced motion disables the chevron transition', async ({ page }) => {
+    // Arrange
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/?lang=en');
+
+    // Act
+    const duration = await page.locator('.chevron').first().evaluate((element) => getComputedStyle(element).transitionDuration);
+
+    // Assert
+    expect(duration).toBe('0s');
   });
 
   test('license dialog is translated in German', async ({ page }) => {

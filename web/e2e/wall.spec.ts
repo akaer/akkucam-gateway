@@ -137,6 +137,7 @@ test.describe('live wall', () => {
     await expect(page.locator('.hub-card')).toHaveCount(2);
     await expect(page.locator('#setup-empty')).toBeHidden();
     await expect(page.locator('#hubs-section')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Base stations' })).toBeAttached();
   });
 
   test('tiles are labelled groups with keyboard access', async ({ page }) => {

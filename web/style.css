@@ -540,7 +540,14 @@ h3 { margin: 24px 0 9px; font-size: var(--text-lg); }
 .license-name { color: var(--text); font-weight: 700; }
 .license-version { color: var(--muted); font-weight: 400; font-size: var(--text-md); }
 .license-id { color: var(--muted); font: var(--text-md) ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; }
-.license-list a { color: var(--accent); font-weight: 700; text-decoration: none; }
+.license-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
 .license-list a:hover { text-decoration: underline; }
 .dialog-actions a.secondary { display: inline-flex; align-items: center; text-decoration: none; }
 
@@ -1533,6 +1540,7 @@ fieldset legend {
 @media (prefers-reduced-motion: reduce) {
   dialog[open] { animation: none; transition: none; }
   .switch i, .switch i::after { transition: none; }
+  .chevron { transition: none; }
   .state-pill.connecting i { animation: none; }
 }
 

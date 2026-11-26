@@ -38,6 +38,7 @@
   "wall.liveCount": "{count} live",
 
   "setup.controlsLabel": "Setup controls",
+  "setup.hubsHeading": "Base stations",
   "setup.emptyTitle": "No base station loaded",
   "setup.emptyHint": "The base station must be powered on and on the same network as this gateway.",
 

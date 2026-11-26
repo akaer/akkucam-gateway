@@ -1,6 +1,11 @@
 package gateway
 
 import (
+	"compress/gzip"
+	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -172,5 +177,88 @@ func TestFaviconUsesLocalThemeIcons(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(webRoot, name)); err != nil {
 			t.Fatalf("theme icon %s is missing: %v", name, err)
 		}
+	}
+}
+
+func staticHandler(t *testing.T) (http.Handler, string) {
+	t.Helper()
+	webRoot := t.TempDir()
+	streams := &fakeStreams{root: t.TempDir()}
+	return New(webRoot, streams).Routes(), webRoot
+}
+
+func TestGzipCompressesTextAssets(t *testing.T) {
+	// Arrange
+	handler, webRoot := staticHandler(t)
+	content := strings.Repeat("const answer = 42;\n", 200)
+	if err := os.WriteFile(filepath.Join(webRoot, "app.js"), []byte(content), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/app.js", nil)
+	request.Header.Set("Accept-Encoding", "gzip")
+
+	// Act
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	// Assert
+	if got := recorder.Header().Get("Content-Encoding"); got != "gzip" {
+		t.Fatalf("Content-Encoding = %q, want gzip", got)
+	}
+	if got := recorder.Header().Get("Vary"); got != "Accept-Encoding" {
+		t.Errorf("Vary = %q, want Accept-Encoding", got)
+	}
+	reader, err := gzip.NewReader(recorder.Body)
+	if err != nil {
+		t.Fatalf("open gzip body: %v", err)
+	}
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("read gzip body: %v", err)
+	}
+	if string(body) != content {
+		t.Error("decompressed body differs from the file")
+	}
+}
+
+func TestGzipLeavesNonTextAndRangeRequestsAlone(t *testing.T) {
+	// Arrange
+	handler, webRoot := staticHandler(t)
+	for name, content := range map[string]string{"font.woff2": "font", "app.js": "const a = 1;\n"} {
+		if err := os.WriteFile(filepath.Join(webRoot, name), []byte(content), 0o640); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tests := []struct {
+		name    string
+		path    string
+		method  string
+		headers map[string]string
+	}{
+		{name: "binary asset", path: "/font.woff2", headers: map[string]string{"Accept-Encoding": "gzip"}},
+		{name: "range request", path: "/app.js", headers: map[string]string{"Accept-Encoding": "gzip", "Range": "bytes=0-3"}},
+		{name: "no gzip accepted", path: "/app.js"},
+		{name: "head request", path: "/app.js", method: http.MethodHead, headers: map[string]string{"Accept-Encoding": "gzip"}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			method := test.method
+			if method == "" {
+				method = http.MethodGet
+			}
+			request := httptest.NewRequestWithContext(context.Background(), method, test.path, nil)
+			for key, value := range test.headers {
+				request.Header.Set(key, value)
+			}
+			recorder := httptest.NewRecorder()
+
+			// Act
+			handler.ServeHTTP(recorder, request)
+
+			// Assert
+			if got := recorder.Header().Get("Content-Encoding"); got != "" {
+				t.Errorf("Content-Encoding = %q, want none", got)
+			}
+		})
 	}
 }
