@@ -1396,7 +1396,7 @@ async function startChannel(key, channelIndex) {
 
     const playlist = await waitForPlaylist(result.playlistUrl, 25000);
     const video = ensureVideo(entry, channel);
-    attachPlayer(video, playlist, stream);
+    await attachPlayer(video, playlist, stream);
     stream.state = 'live';
     if (!ui.wallSection.hidden) renderWall();
     if (state.details && sameCamera(state.details, { key, index: channelIndex })) renderDetailsDrawer();
@@ -1461,9 +1461,30 @@ async function waitForPlaylist(url, timeout) {
   throw new Error(i18n.t('camera.playlistTimeout'));
 }
 
-function attachPlayer(video, url, stream) {
+let hlsLoad = null;
+
+// hls.js is 400 KB and only needed once a stream starts, so the dashboard
+// loads it on demand instead of blocking the first paint.
+function loadHls() {
+  if (window.Hls) return Promise.resolve();
+  if (!hlsLoad) {
+    hlsLoad = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = '/hls.min.js';
+      script.onload = resolve;
+      script.onerror = () => { hlsLoad = null; reject(new Error('hls.js')); };
+      document.head.append(script);
+    });
+  }
+  return hlsLoad;
+}
+
+async function attachPlayer(video, url, stream) {
   if (!video) return;
-  if (window.Hls && Hls.isSupported()) {
+  const ready = await loadHls().then(() => Boolean(window.Hls && Hls.isSupported())).catch(() => false);
+  // A stop during loading removed the video; do not attach a player to it.
+  if (stream.video !== video || !video.isConnected) return;
+  if (ready) {
     stream.hls = new Hls({liveSyncDurationCount:2, liveMaxLatencyDurationCount:5});
     stream.hls.loadSource(`${url}?t=${Date.now()}`);
     stream.hls.attachMedia(video);

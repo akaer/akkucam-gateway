@@ -38,6 +38,7 @@
   "wall.liveCount": "{count} live",
 
   "setup.controlsLabel": "Einrichtung",
+  "setup.hubsHeading": "Basisstationen",
   "setup.emptyTitle": "Noch keine Basisstation geladen",
   "setup.emptyHint": "Die Basisstation muss eingeschaltet und im selben Netz wie dieses Gateway sein.",
 
