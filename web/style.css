@@ -390,7 +390,12 @@ h3 { margin: 24px 0 9px; font-size: var(--text-lg); }
 }
 
 .setup-empty-icon svg { display: block; width: 30px; height: 30px; fill: currentColor; }
-.setup-empty h3 { margin: 0; font-size: var(--text-lg); }
+.setup-empty h2 {
+  margin: 0;
+  font-family: inherit;
+  letter-spacing: normal;
+  font-size: var(--text-lg);
+}
 .setup-empty p { max-width: 52ch; margin: 0 auto; color: var(--muted); }
 
 .hub-grid {
