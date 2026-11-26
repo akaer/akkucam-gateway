@@ -468,7 +468,7 @@
           "version": {
             "type": "string",
             "description": "Semantic version of the gateway (SemVer 2.0.0)",
-            "example": "0.2.0"
+            "example": "0.2.1"
           },
           "commit": {
             "type": "string",
