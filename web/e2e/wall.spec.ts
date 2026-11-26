@@ -125,6 +125,7 @@ test.describe('live wall', () => {
     expect(widths.setup).toBe(widths.viewport);
     expect(widths.toolbar).toBe(widths.viewport);
     await expect(page.locator('#setup-empty')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'No base station loaded' })).toBeVisible();
     await expect(page.locator('#hubs-section')).toBeHidden();
     await expect(page.locator('#discover')).toBeVisible();
     await expect(page.locator('.page-footer')).toHaveCount(0);
