@@ -11,6 +11,7 @@
   "help.title": "How it works",
   "help.text": "Find a base station, open its cameras and start a live view without any cloud service.",
   "help.wallText": "Once the first camera list is loaded, the live wall fills the screen. Switch between Auto, Focus and Comfort, filter by base station, and open a tile for details.",
+  "help.repository": "Project on GitHub",
   "help.dismiss": "Got it",
 
   "version.line": "Version {version}",

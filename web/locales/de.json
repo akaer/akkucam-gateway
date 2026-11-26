@@ -11,6 +11,7 @@
   "help.title": "So funktioniert es",
   "help.text": "Basisstation finden, gekoppelte Kameras öffnen und Livebild ohne Cloud-Dienst starten.",
   "help.wallText": "Sobald die erste Kameraliste geladen ist, füllt die Live-Wand den Bildschirm. Wechsle zwischen Auto, Fokus und Komfort, filtere nach Basisstation und öffne eine Kachel für Details.",
+  "help.repository": "Projekt auf GitHub",
   "help.dismiss": "Verstanden",
 
   "version.line": "Version {version}",
