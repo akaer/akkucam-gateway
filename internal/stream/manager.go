@@ -101,7 +101,9 @@ func (m *Manager) ActiveCount() int {
 // stream for the same DID and channel replaces the existing one.
 func (m *Manager) Start(parent context.Context, ip, did, password string, cameraIndex, quality int) (Result, error) {
 	id := unsafeID.ReplaceAllString(did+"-ch"+strconv.Itoa(cameraIndex+1), "_")
-	if id == "" {
+	// unsafeID keeps the ID free of separators; the check makes that provable for
+	// static analysis so the HLS directory cannot leave m.root.
+	if !filepath.IsLocal(id) {
 		return Result{}, ErrDIDRequired
 	}
 	m.Stop(id)

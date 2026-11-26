@@ -5,7 +5,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -201,6 +203,28 @@ func TestStartReplacesExistingStreamForSameTarget(t *testing.T) {
 	status := manager.Status(secondResult.ID)
 	if !status.Running || status.Channel != 1 || status.Battery == nil || status.Battery.Capacity != 64 {
 		t.Fatalf("replacement status=%+v", status)
+	}
+}
+
+func TestStartKeepsHLSDirectoryInsideRoot(t *testing.T) {
+	// Arrange
+	manager, opened := testManagerWithFakeLive(t)
+
+	// Act
+	result, err := manager.Start(context.Background(), "192.0.2.10", "../../CMAG-000001-ABCDE/../..", "code", 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	live := <-opened
+	<-live.started
+	defer manager.Stop(result.ID)
+
+	// Assert
+	if !filepath.IsLocal(result.ID) {
+		t.Fatalf("stream ID %q is not local", result.ID)
+	}
+	if _, err := os.Stat(filepath.Join(manager.Root(), result.ID)); err != nil {
+		t.Fatalf("HLS directory missing below root: %v", err)
 	}
 }
 
